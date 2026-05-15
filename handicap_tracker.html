@@ -486,7 +486,7 @@ function App() {
           </button>
           <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, padding: "6px 10px", borderRadius: 6, background: syncStatus === 'ok' ? 'rgba(15,110,86,0.3)' : syncStatus === 'error' ? 'rgba(153,60,29,0.3)' : syncStatus === 'syncing' ? 'rgba(255,255,255,0.1)' : 'transparent', color: syncStatus === 'ok' ? '#86efac' : syncStatus === 'error' ? '#fca5a5' : '#94a3b8' }}>
             <i className={syncStatus === 'syncing' ? 'ti ti-loader' : syncStatus === 'ok' ? 'ti ti-cloud-check' : syncStatus === 'error' ? 'ti ti-cloud-x' : 'ti ti-cloud'} aria-hidden="true"></i>
-            {syncStatus === 'syncing' ? 'Syncing...' : syncStatus === 'ok' ? 'Synced' : syncStatus === 'error' ? 'Sync error' : 'Google Sheets'}
+            {syncStatus === 'syncing' ? 'Syncing...' : syncStatus === 'ok' ? 'Synced' : syncStatus === 'error' ? 'Sync error' : 'Firebase'}
           </div>
         </div>
       </div>
