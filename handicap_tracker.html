@@ -121,9 +121,18 @@ function rowsToVisited(rows) {
   });
 }
 
+const DEFAULT_VISITED = [{"course":"Steenberg","date":"2025-01-01","notes":"South Africa 2025","id":"sa001"},{"course":"Westlake","date":"2025-01-01","notes":"South Africa 2025","id":"sa002"},{"course":"Royal Cape","date":"2025-01-01","notes":"South Africa 2025","id":"sa003"},{"course":"De Zalze","date":"2025-01-01","notes":"South Africa 2025","id":"sa004"},{"course":"Pearl Valley","date":"2025-01-01","notes":"South Africa 2025","id":"sa005"},{"course":"Stellenbosch","date":"2025-01-01","notes":"South Africa 2025","id":"sa006"},{"course":"Erinvale","date":"2025-01-01","notes":"South Africa 2025","id":"sa007"},{"course":"Belton Woods Woodland","date":"2024-01-01","notes":"UK 2024","id":"uk001"},{"course":"Great Yarmouth and Caister","date":"2024-01-01","notes":"UK 2024","id":"uk002"},{"course":"Costessey Park","date":"2024-01-01","notes":"UK 2024","id":"uk003"},{"course":"Las Americas","date":"2024-01-01","notes":"Tenerife 2024","id":"ten001"},{"course":"Adeje","date":"2024-01-01","notes":"Tenerife 2024","id":"ten002"},{"course":"Mueng Kang Bangkok","date":"2024-01-01","notes":"Thailand 2024","id":"th001"},{"course":"Royal Gems City Bangkok","date":"2024-01-01","notes":"Thailand 2024","id":"th002"},{"course":"Alpine Bangkok","date":"2024-01-01","notes":"Thailand 2024","id":"th003"},{"course":"Bang Pa Bangkok","date":"2024-01-01","notes":"Thailand 2024","id":"th004"},{"course":"Salobre Old","date":"2024-01-01","notes":"Gran Canaria 2024","id":"gc001"},{"course":"Anfi Tauro","date":"2024-01-01","notes":"Gran Canaria 2024","id":"gc002"},{"course":"Maspalomas","date":"2024-01-01","notes":"Gran Canaria 2024","id":"gc003"},{"course":"Meloneras","date":"2024-01-01","notes":"Gran Canaria 2024","id":"gc004"}];
+
 function loadVisited() {
-  try { const s = localStorage.getItem(VISITED_KEY); if (s) return JSON.parse(s); } catch(e) {}
-  return [];
+  try {
+    const s = localStorage.getItem(VISITED_KEY);
+    const saved = s ? JSON.parse(s) : [];
+    // Always merge defaults - new defaults added to code will always appear
+    const savedIds = new Set(saved.map(v => v.id));
+    const missing = DEFAULT_VISITED.filter(v => !savedIds.has(v.id));
+    return [...saved, ...missing];
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_VISITED));
 }
 function saveVisited(v) {
   try { localStorage.setItem(VISITED_KEY, JSON.stringify(v)); } catch(e) {}
@@ -139,13 +148,40 @@ const BUILT_IN_COURSES = [{"course":"RN 18","tee":"Black","rating":74.6,"slope":
 function loadCourseDB() {
   try {
     const saved = localStorage.getItem(COURSE_DB_KEY);
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const savedDB = JSON.parse(saved);
+      // Always merge built-in courses - updates to ratings/slopes always apply
+      // Match on course+tee; if built-in has a newer entry, update it
+      const savedKeys = new Set(savedDB.map(c => c.course.toLowerCase() + '|' + c.tee.toLowerCase()));
+      // Add any built-in courses not in saved
+      const missing = BUILT_IN_COURSES.filter(c =>
+        !savedKeys.has(c.course.toLowerCase() + '|' + c.tee.toLowerCase())
+      );
+      // Update existing built-in entries with latest ratings
+      const merged = savedDB.map(c => {
+        const builtIn = BUILT_IN_COURSES.find(b =>
+          b.course.toLowerCase() === c.course.toLowerCase() &&
+          b.tee.toLowerCase() === c.tee.toLowerCase()
+        );
+        // Only update if it came from built-in (no id = not user-added)
+        return (!c.userAdded && builtIn) ? { ...c, rating: builtIn.rating, slope: builtIn.slope, par: builtIn.par } : c;
+      });
+      return [...merged, ...missing];
+    }
   } catch(e) {}
   return JSON.parse(JSON.stringify(BUILT_IN_COURSES));
 }
 
 function saveCourseDB(db) {
-  try { localStorage.setItem(COURSE_DB_KEY, JSON.stringify(db)); } catch(e) {}
+  try {
+    // Mark user-added courses (not in BUILT_IN_COURSES) so they're never overwritten
+    const builtInKeys = new Set(BUILT_IN_COURSES.map(c => c.course.toLowerCase() + '|' + c.tee.toLowerCase()));
+    const marked = db.map(c => ({
+      ...c,
+      userAdded: !builtInKeys.has(c.course.toLowerCase() + '|' + c.tee.toLowerCase())
+    }));
+    localStorage.setItem(COURSE_DB_KEY, JSON.stringify(marked));
+  } catch(e) {}
 }
 
 function lookupCourse(db, course, tee) {
@@ -297,7 +333,15 @@ function App() {
           fresh.allPlayed = [...apDoc.rounds, ...fresh.allPlayed];
         }
         setData(fresh);
-        if (visitedDoc && visitedDoc.items) setVisited(visitedDoc.items);
+        if (visitedDoc && visitedDoc.items) {
+          // Merge Firebase visited with defaults so new defaults always appear
+          const fbVisited = visitedDoc.items;
+          const fbIds = new Set(fbVisited.map(v => v.id));
+          const missing = DEFAULT_VISITED.filter(v => !fbIds.has(v.id));
+          setVisited([...fbVisited, ...missing]);
+        } else {
+          setVisited(JSON.parse(JSON.stringify(DEFAULT_VISITED)));
+        }
         setSyncStatus('ok');
         setTimeout(() => setSyncStatus('idle'), 3000);
       } catch(e) {
@@ -498,7 +542,7 @@ function App() {
         ))}
       </div>
       <div style={{ padding: "20px 24px", maxWidth: 1200, margin: "0 auto" }}>
-        {tab === "dashboard" && <Dashboard data={data} allRounds={allRounds} countingSet={countingSet} liveEgHC={liveEgHC} liveAllHC={liveAllHC} allCounting8Rounds={allCounting8Rounds} onAddRound={() => setTab("add")} />}
+        {tab === "dashboard" && <Dashboard data={data} allRounds={allRounds} countingSet={countingSet} liveEgHC={liveEgHC} liveAllHC={liveAllHC} allCounting8Rounds={allCounting8Rounds} onAddRound={() => setTab("add")} visited={visited} />}
         {tab === "rounds" && (
           <RoundsTable rounds={filteredRounds} countingSet={countingSet} courseDB={courseDB} egHCByDate={egHCByDate} search={search} setSearch={setSearch} filterCourse={filterCourse} setFilterCourse={setFilterCourse} filterMethod={filterMethod} setFilterMethod={setFilterMethod} sortField={sortField} sortDir={sortDir} onSort={handleSort} onEdit={r => { setEditRound(r); setTab("add"); }} onDelete={handleDelete} />
         )}
@@ -521,7 +565,7 @@ function StatCard({ label, value, sub, color }) {
   );
 }
 
-function Dashboard({ data, allRounds, countingSet, liveEgHC, liveAllHC, allCounting8Rounds, onAddRound }) {
+function Dashboard({ data, allRounds, countingSet, liveEgHC, liveAllHC, allCounting8Rounds, onAddRound, visited }) {
   const eg = data.englandGolf || [];
   const nc = data.nonCounted || [];
   const ap = data.allPlayed || [];
@@ -530,7 +574,11 @@ function Dashboard({ data, allRounds, countingSet, liveEgHC, liveAllHC, allCount
   const latestAP = ap.find(r => r.potentialHC != null);
   const totalRounds = allRounds.length;
   const egRounds = eg.length;
-  const allCourses = new Set(allRounds.map(r => r.course).filter(Boolean));
+  const allCourses = new Set([
+    ...allRounds.map(r => r.course).filter(Boolean),
+    ...(visited || []).map(v => v.course).filter(Boolean),
+    ...(data.allPlayed || []).map(r => r.course).filter(Boolean)
+  ]);
 
   const recentEG = eg.filter(r => r.newHC != null).slice(0, 20).reverse();
   const recentAP = ap.filter(r => r.potentialHC != null).slice(0, 20).reverse();
@@ -547,7 +595,7 @@ function Dashboard({ data, allRounds, countingSet, liveEgHC, liveAllHC, allCount
         <StatCard label="Current HC (England Golf)" value={liveEgHC ? fmt(liveEgHC.hc) : (latestEG ? fmt(latestEG.newHC) : "—")} sub={liveEgHC ? liveEgHC.date + " (calculated)" : latestEG?.date} color="#185FA5" />
         <StatCard label="Potential HC (all played)" value={liveAllHC ? fmt(liveAllHC.hc) : (latestAP ? fmt(latestAP.potentialHC) : "—")} sub={liveAllHC ? liveAllHC.date + " (calculated)" : latestAP?.date} color="#0F6E56" />
         <StatCard label="Total rounds logged" value={totalRounds} sub={`${egRounds} official`} color="#533AB7" />
-        <StatCard label="Courses played" value={allCourses.size} color="#993C1D" />
+        <StatCard label="Courses played" value={allCourses.size} sub="inc. visited" color="#993C1D" />
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
         <MiniChart title="England Golf HC trend" points={recentEG} yKey="newHC" color="#185FA5" bg="#E6F1FB" />
@@ -737,13 +785,15 @@ function calcShotsToHC(r, courseDB, egHCByDate) {
     c.tee.toLowerCase().trim() === String(r.tee).toLowerCase().trim()
   );
   if (!match) return null;
-  // Use stored newHC for EG rounds, otherwise find nearest EG HC at time of round
-  let hcIndex = r.newHC != null ? Number(r.newHC) : null;
-  if (!hcIndex && egHCByDate && r.date) {
-    // Find the most recent EG HC on or before this round's date
-    const entries = egHCByDate.filter(e => e.date <= r.date);
+  // Use the STARTING handicap (HC before this round), not the new HC after
+  // For EG rounds: find the most recent EG HC BEFORE this round's date
+  let hcIndex = null;
+  if (egHCByDate && r.date) {
+    const entries = egHCByDate.filter(e => e.date < r.date);
     if (entries.length) hcIndex = entries[entries.length - 1].hc;
   }
+  // If no prior HC found (first round), fall back to newHC
+  if (!hcIndex && r.newHC != null) hcIndex = Number(r.newHC);
   if (!hcIndex) return null;
   const courseHC = Math.round(hcIndex * (match.slope / 113) + (match.rating - match.par));
   return { shots: Number(r.score) - match.par - courseHC, courseHC, par: match.par };
@@ -1147,7 +1197,7 @@ function CoursesPlayedTab({ data, visited, setVisited }) {
       {showAdd && (
         <div style={{ background: '#f0f6ff', border: '0.5px solid #b5d4f4', borderRadius: 10, padding: 16, marginBottom: 16 }}>
           <div style={{ fontSize: 13, fontWeight: 500, color: '#0c447c', marginBottom: 12 }}>Add a course you've visited (no score recorded)</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 2fr', gap: 10, marginBottom: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, marginBottom: 12 }}>
             <div>
               <label style={{ display: 'block', fontSize: 12, color: '#378add', marginBottom: 3 }}>Course name</label>
               <select value={newVisit.course} onChange={e => setNewVisit(v => ({ ...v, course: e.target.value }))} style={{ width: '100%', boxSizing: 'border-box' }}>
