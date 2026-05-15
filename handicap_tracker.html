@@ -32,6 +32,58 @@ const RAW_DATA = {"englandGolf":[{"date":"2026-05-12","scoreDiff":24.792537,"cou
 
 const COURSE_DB_KEY = "golf_course_db_v1";
 const VISITED_KEY = "golf_visited_courses_v1";
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbxPdcB7zEx7pWKI1-mT_BEidB3rgWYKZtJayAt6PaFe0rxax7_WGabhZeKQkfJwzDhN/exec";
+
+async function sheetsRead(tab) {
+  try {
+    const res = await fetch(SHEETS_URL + "?action=read&tab=" + tab);
+    const json = await res.json();
+    return json.ok ? json.data : null;
+  } catch(e) { return null; }
+}
+
+async function sheetsWrite(tab, rows) {
+  try {
+    await fetch(SHEETS_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "write", tab, rows })
+    });
+  } catch(e) {}
+}
+
+function roundsToRows(rounds) {
+  const headers = ["date","scoreDiff","course","tee","score","newHC","toHC","potentialHC","source","id"];
+  const rows = [headers];
+  rounds.forEach(r => rows.push(headers.map(h => r[h] != null ? r[h] : "")));
+  return rows;
+}
+
+function rowsToRounds(rows) {
+  if (!rows || rows.length < 2) return [];
+  const headers = rows[0];
+  return rows.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { if (row[i] !== "") obj[h] = row[i]; });
+    return obj;
+  });
+}
+
+function visitedToRows(visited) {
+  const headers = ["course","date","notes","id"];
+  const rows = [headers];
+  visited.forEach(v => rows.push(headers.map(h => v[h] != null ? v[h] : "")));
+  return rows;
+}
+
+function rowsToVisited(rows) {
+  if (!rows || rows.length < 2) return [];
+  const headers = rows[0];
+  return rows.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { if (row[i] !== "") obj[h] = row[i]; });
+    return obj;
+  });
+}
 
 function loadVisited() {
   try { const s = localStorage.getItem(VISITED_KEY); if (s) return JSON.parse(s); } catch(e) {}
@@ -164,7 +216,58 @@ function App() {
   const [notification, setNotification] = useState(null);
   const [courseDB, setCourseDB] = useState(() => loadCourseDB());
   const [visited, setVisited] = useState(() => loadVisited());
+  const [syncStatus, setSyncStatus] = useState('idle'); // idle | syncing | ok | error
   useEffect(() => { saveVisited(visited); }, [visited]);
+
+  // Sync data to Google Sheets whenever data or visited changes
+  useEffect(() => {
+    const sync = async () => {
+      setSyncStatus('syncing');
+      try {
+        const manualEG = (data.englandGolf || []).filter(r => r.id);
+        const manualAP = (data.allPlayed || []).filter(r => r.id);
+        const allManual = [...manualEG, ...manualAP];
+        await sheetsWrite('EG', roundsToRows(manualEG));
+        await sheetsWrite('AllPlayed', roundsToRows(manualAP));
+        await sheetsWrite('Visited', visitedToRows(visited));
+        setSyncStatus('ok');
+        setTimeout(() => setSyncStatus('idle'), 3000);
+      } catch(e) {
+        setSyncStatus('error');
+      }
+    };
+    const timer = setTimeout(sync, 2000); // debounce 2s
+    return () => clearTimeout(timer);
+  }, [data, visited]);
+
+  // Load from Google Sheets on startup
+  useEffect(() => {
+    const loadFromSheets = async () => {
+      setSyncStatus('syncing');
+      try {
+        const [egRows, apRows, visitedRows] = await Promise.all([
+          sheetsRead('EG'),
+          sheetsRead('AllPlayed'),
+          sheetsRead('Visited')
+        ]);
+        const egManual = rowsToRounds(egRows);
+        const apManual = rowsToRounds(apRows);
+        const visitedData = rowsToVisited(visitedRows);
+        if (egManual.length || apManual.length) {
+          const fresh = JSON.parse(JSON.stringify(RAW_DATA));
+          if (egManual.length) fresh.englandGolf = [...egManual, ...fresh.englandGolf];
+          if (apManual.length) fresh.allPlayed = [...apManual, ...fresh.allPlayed];
+          setData(fresh);
+        }
+        if (visitedData.length) setVisited(visitedData);
+        setSyncStatus('ok');
+        setTimeout(() => setSyncStatus('idle'), 3000);
+      } catch(e) {
+        setSyncStatus('error');
+      }
+    };
+    loadFromSheets();
+  }, []);
 
   useEffect(() => { saveCourseDB(courseDB); }, [courseDB]);
 
@@ -342,6 +445,10 @@ function App() {
           <button onClick={() => { if(confirm('Clear all manually added rounds and reset to spreadsheet data?')) { localStorage.removeItem('golf_manual_rounds_v1'); window.location.reload(); } }} style={{ background: "rgba(255,255,255,0.08)", color: "#f87171", border: "0.5px solid rgba(248,113,113,0.4)", borderRadius: 6, padding: "6px 12px", cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
             <i className="ti ti-refresh" aria-hidden="true"></i> Reset data
           </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, padding: "6px 10px", borderRadius: 6, background: syncStatus === 'ok' ? 'rgba(15,110,86,0.3)' : syncStatus === 'error' ? 'rgba(153,60,29,0.3)' : syncStatus === 'syncing' ? 'rgba(255,255,255,0.1)' : 'transparent', color: syncStatus === 'ok' ? '#86efac' : syncStatus === 'error' ? '#fca5a5' : '#94a3b8' }}>
+            <i className={syncStatus === 'syncing' ? 'ti ti-loader' : syncStatus === 'ok' ? 'ti ti-cloud-check' : syncStatus === 'error' ? 'ti ti-cloud-x' : 'ti ti-cloud'} aria-hidden="true"></i>
+            {syncStatus === 'syncing' ? 'Syncing...' : syncStatus === 'ok' ? 'Synced' : syncStatus === 'error' ? 'Sync error' : 'Google Sheets'}
+          </div>
         </div>
       </div>
       <div style={{ display: "flex", borderBottom: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-primary)", padding: "0 16px" }}>
