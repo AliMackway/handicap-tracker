@@ -907,17 +907,17 @@ function AddEditRound({ round, onSave, onCancel, origIdx, courseDB, setCourseDB,
             <input type="date" value={form.date} onChange={e => set("date", e.target.value)} style={{ width: "100%", boxSizing: "border-box" }} />
           </Field>
           <Field label="Gross score">
-            <input
+            <select
               ref={scoreRef}
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              autoComplete="off"
               defaultValue={round?.score != null ? String(round.score) : ''}
-              onInput={e => { setScoreVal(e.target.value); }}
-              placeholder="104"
+              onChange={e => setScoreVal(e.target.value)}
               style={{ width: "100%", boxSizing: "border-box", fontSize: 16 }}
-            />
+            >
+              <option value="">-- Select score --</option>
+              {Array.from({length: 91}, (_, i) => i + 60).map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
           </Field>
         </div>
 
