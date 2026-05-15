@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handicap Tracker</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f0;color:#1a1a1a;-webkit-font-smoothing:antialiased}
+input,select,textarea{font-family:inherit;font-size:14px;color:#1a1a1a;background:#fff;border:0.5px solid #ccc;border-radius:6px;padding:8px 10px;outline:none;transition:border-color 0.15s}
+input:focus,select:focus{border-color:#185FA5;box-shadow:0 0 0 2px rgba(24,95,165,0.12)}
+button{font-family:inherit;cursor:pointer}
+table{border-collapse:collapse}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useMemo, useRef } = React;
+
+const RAW_DATA = {"englandGolf":[{"date":"2026-05-12","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"newHC":23.600373134328358,"toHC":3,"source":"england_golf"},{"date":"2026-05-05","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"newHC":23.076305970149253,"toHC":3,"source":"england_golf"},{"date":"2025-12-12","scoreDiff":33.7,"course":"RN Academy","tee":"Silver","score":89,"newHC":23.1,"toHC":null,"source":"england_golf"},{"date":"2025-12-03","scoreDiff":28.8,"course":"RN Academy","tee":"Silver","score":44,"newHC":23.1,"toHC":null,"source":"england_golf"},{"date":"2025-09-15","scoreDiff":24.9,"course":"Bawburgh","tee":"Red","score":101,"newHC":23.542793843283583,"toHC":null,"source":"england_golf"},{"date":"2025-09-13","scoreDiff":25.597959183673474,"course":"RN Academy","tee":"Silver","score":82,"newHC":22.55317164179105,"toHC":null,"source":"england_golf"},{"date":"2025-09-10","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"newHC":22.55317164179105,"toHC":null,"source":"england_golf"},{"date":"2025-09-05","scoreDiff":27.322388,"course":"Royal Norwich","tee":"Black","score":107,"newHC":22.55317164179105,"toHC":null,"source":"england_golf"},{"date":"2025-09-02","scoreDiff":22.262687,"course":"Royal Norwich","tee":"Black","score":101,"newHC":22.55317164179105,"toHC":null,"source":"england_golf"},{"date":"2025-08-27","scoreDiff":21.419403,"course":"Royal Norwich","tee":"Black","score":100,"newHC":22.870335820895527,"toHC":null,"source":"england_golf"},{"date":"2025-08-21","scoreDiff":26.36666666666666,"course":"Bawburgh","tee":"Red","score":104,"newHC":23.4,"toHC":null,"source":"england_golf"},{"date":"2025-08-17","scoreDiff":26.479104,"course":"Royal Norwich","tee":"Black","score":106,"newHC":23.395335820895525,"toHC":null,"source":"england_golf"},{"date":"2025-07-14","scoreDiff":31.6,"course":"Cromer","tee":"Red","score":111,"newHC":23.395335820895525,"toHC":null,"source":"england_golf"},{"date":"2025-07-02","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"newHC":23.395335820895525,"toHC":null,"source":"england_golf"},{"date":"2025-07-01","scoreDiff":22.262687,"course":"Royal Norwich","tee":"Black","score":101,"newHC":23.607835820895524,"toHC":null,"source":"england_golf"},{"date":"2025-06-24","scoreDiff":23.949254,"course":"Royal Norwich","tee":"Black","score":"103","newHC":24.1875,"toHC":null,"source":"england_golf"},{"date":"2025-06-19","scoreDiff":24.6,"course":"Dereham","tee":"Red","score":99,"newHC":24.575,"toHC":null,"source":"england_golf"},{"date":"2025-06-13","scoreDiff":27.322388,"course":"Royal Norwich","tee":"Black","score":107,"newHC":25.5,"toHC":null,"source":"england_golf"},{"date":"2025-06-12","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"newHC":25.5,"toHC":null,"source":"england_golf"},{"date":"2025-06-10","scoreDiff":27.322388,"course":"Royal Norwich","tee":"Black","score":107,"newHC":25.9,"toHC":null,"source":"england_golf"},{"date":"2025-06-06","scoreDiff":26.479104,"course":"Royal Norwich","tee":"Black","score":106,"newHC":25.9,"toHC":null,"source":"england_golf"},{"date":"2025-06-05","scoreDiff":34.2,"course":"Swaffham","tee":"Red","score":111,"newHC":26.2,"toHC":null,"source":"england_golf"},{"date":"2025-05-07","scoreDiff":20.576119,"course":"Royal Norwich","tee":"Black 18","score":99,"newHC":26.2,"toHC":null,"source":"england_golf"},{"date":"2025-04-08","scoreDiff":25.635821,"course":"Royal Norwich","tee":"Black 18","score":105,"newHC":26.15,"toHC":null,"source":"england_golf"},{"date":"2025-04-07","scoreDiff":29.008955,"course":"Royal Norwich","tee":"Black 18","score":109,"newHC":27.6,"toHC":null,"source":"england_golf"},{"date":"2025-04-04","scoreDiff":29.008955,"course":"Royal Norwich","tee":"Black 18","score":109,"newHC":27.8,"toHC":null,"source":"england_golf"},{"date":"2025-04-03","scoreDiff":32.4,"course":"Dunston","tee":"Red 18","score":106,"newHC":28.1,"toHC":null,"source":"england_golf"},{"date":"2025-03-31","scoreDiff":28.165672,"course":"Royal Norwich","tee":"Black 18","score":108,"newHC":27.8,"toHC":null,"source":"england_golf"},{"date":"2025-02-11","scoreDiff":31.2,"course":"Royal Norwich","tee":"Black 18","score":110,"newHC":28.1,"toHC":null,"source":"england_golf"},{"date":"2025-02-10","scoreDiff":26.9,"course":"Royal Norwich","tee":"Black 18","score":105,"newHC":27.6,"toHC":null,"source":"england_golf"},{"date":"2025-02-09","scoreDiff":27,"course":"Norfolk Premier","tee":"Orange/Silver","score":91,"newHC":28.1,"toHC":null,"source":"england_golf"},{"date":"2025-02-07","scoreDiff":27.7,"course":"Royal Norwich","tee":"Black 18","score":106,"newHC":28.3,"toHC":null,"source":"england_golf"},{"date":"2025-02-06","scoreDiff":38.6,"course":"Dunston","tee":"Blue 18","score":113,"newHC":28.5,"toHC":null,"source":"england_golf"},{"date":"2025-01-02","scoreDiff":31.3,"course":"Norfolk Premier","tee":"Orange/Silver","score":95,"newHC":28.5,"toHC":null,"source":"england_golf"},{"date":"2024-12-30","scoreDiff":28.1,"course":"Norfolk Premier","tee":"Orange/Silver","score":92,"newHC":28.5,"toHC":null,"source":"england_golf"},{"date":"2024-12-19","scoreDiff":25.1,"course":"Royal Norwich","tee":"Black 18","score":103,"newHC":28.7,"toHC":null,"source":"england_golf"},{"date":"2024-12-16","scoreDiff":31.3,"course":"Dunston","tee":"Blue F9","score":51,"newHC":28.5,"toHC":null,"source":"england_golf"},{"date":"2024-12-15","scoreDiff":34,"course":"RN Academy","tee":"Silver F9","score":46,"newHC":28.5,"toHC":null,"source":"england_golf"},{"date":"2024-12-12","scoreDiff":36,"course":"Royal Norwich","tee":"Bronze B9","score":56,"newHC":28.5,"toHC":null,"source":"england_golf"},{"date":"2024-12-10","scoreDiff":33.2,"course":"Royal Norwich","tee":"Bronze","score":106,"newHC":28.1,"toHC":null,"source":"england_golf"},{"date":"2024-12-03","scoreDiff":31.3,"course":"Royal Norwich","tee":"Bronze","score":104,"newHC":27.8,"toHC":null,"source":"england_golf"},{"date":"2024-12-02","scoreDiff":31.4,"course":"RN Academy","tee":"Silver","score":44,"newHC":31.3,"toHC":null,"source":"england_golf"},{"date":"2024-11-26","scoreDiff":33.2,"course":"Royal Norwich","tee":"Bronze","score":108,"newHC":27.8,"toHC":null,"source":"england_golf"},{"date":"2024-11-18","scoreDiff":30.9,"course":"Dunston","tee":"Red F9","score":52,"newHC":27.8,"toHC":null,"source":"england_golf"},{"date":"2024-11-04","scoreDiff":30.5,"course":"Dunston","tee":"Red 18","score":104,"newHC":27.8,"toHC":null,"source":"england_golf"},{"date":"2024-10-28","scoreDiff":32.4,"course":"Dunston","tee":"Red 18","score":107,"newHC":27.8,"toHC":null,"source":"england_golf"},{"date":"2024-10-08","scoreDiff":28.6,"course":"Royal Norwich","tee":"Black 18","score":107,"newHC":27.8,"toHC":null,"source":"england_golf"},{"date":"2024-10-03","scoreDiff":33.3,"course":"Dunston","tee":"Red 18","score":107,"newHC":27.9,"toHC":null,"source":"england_golf"},{"date":"2024-09-06","scoreDiff":26.9,"course":"Dunston","tee":"Red 18","score":100,"newHC":27.9,"toHC":null,"source":"england_golf"},{"date":"2024-09-05","scoreDiff":31.7,"course":"RN Academy","tee":"Silver F9","score":44,"newHC":28.5,"toHC":null,"source":"england_golf"},{"date":"2024-09-03","scoreDiff":28.5,"course":"Lakeside Lodges","tee":"Red 18","score":103,"newHC":28.5,"toHC":null,"source":"england_golf"},{"date":"2024-09-02","scoreDiff":29.4,"course":"Lakeside Lodges","tee":"Red 18","score":104,"newHC":28.5,"toHC":null,"source":"england_golf"},{"date":"2024-08-28","scoreDiff":31.2,"course":"RN Main","tee":"Black 18","score":110,"newHC":28.3,"toHC":null,"source":"england_golf"},{"date":"2024-08-22","scoreDiff":32.4,"course":"Dunston","tee":"Red 18","score":106,"newHC":28.5,"toHC":null,"source":"england_golf"},{"date":"2024-08-19","scoreDiff":29.5,"course":"RN Main","tee":"Black 18","score":108,"newHC":28.7,"toHC":null,"source":"england_golf"},{"date":"2024-08-12","scoreDiff":23.3,"course":"RN Main","tee":"Black 18","score":102,"newHC":28.7,"toHC":null,"source":"england_golf"},{"date":"2024-08-10","scoreDiff":33.8,"course":"RN Main","tee":"Black F9","score":58,"newHC":29.1,"toHC":null,"source":"england_golf"},{"date":"2024-08-08","scoreDiff":32.3,"course":"Dunston","tee":"Red 18","score":107,"newHC":31.3,"toHC":null,"source":"england_golf"},{"date":"2024-08-06","scoreDiff":27.7,"course":"Dunston","tee":"Red 18","score":102,"newHC":31.3,"toHC":null,"source":"england_golf"},{"date":"2024-08-01","scoreDiff":28.6,"course":"Dunston","tee":"Red 18","score":108,"newHC":31.4,"toHC":null,"source":"england_golf"},{"date":"2024-07-25","scoreDiff":42.3,"course":"Dunston","tee":"Red 18","score":118,"newHC":31.6,"toHC":null,"source":"england_golf"},{"date":"2024-07-04","scoreDiff":31.4,"course":"Dunston","tee":"Red 18","score":106,"newHC":32.2,"toHC":null,"source":"england_golf"},{"date":"2024-06-27","scoreDiff":29.5,"course":"Dunston","tee":"Red 18","score":104,"newHC":32.2,"toHC":null,"source":"england_golf"},{"date":"2024-06-24","scoreDiff":45.9,"course":"Royal Norwich","tee":"Black 18","score":128,"newHC":39,"toHC":null,"source":"england_golf"},{"date":"2024-06-16","scoreDiff":33,"course":"Royal Norwich","tee":"Black F9","score":57,"newHC":32.4,"toHC":null,"source":"england_golf"},{"date":"2024-06-14","scoreDiff":34.3,"course":"Dunston","tee":"Red B9","score":56,"newHC":32.8,"toHC":null,"source":"england_golf"},{"date":"2024-06-14","scoreDiff":33.4,"course":"Dunston","tee":"Red F9","score":55,"newHC":31.3,"toHC":null,"source":"england_golf"},{"date":"2024-06-13","scoreDiff":35.9,"course":"Dunston","tee":"Red 18","score":112,"newHC":31,"toHC":null,"source":"england_golf"},{"date":"2024-06-12","scoreDiff":36.4,"course":"Royal Norwich","tee":"Black 18","score":116,"newHC":31,"toHC":null,"source":"england_golf"},{"date":"2024-06-08","scoreDiff":36.8,"course":"Dunston","tee":"Red 18","score":112,"newHC":31,"toHC":null,"source":"england_golf"},{"date":"2024-06-01","scoreDiff":35.4,"course":"Royal Norwich","tee":"Black 18","score":117,"newHC":30.5,"toHC":null,"source":"england_golf"},{"date":"2024-05-24","scoreDiff":27.1,"course":"RN Academy","tee":"Silver 18","score":84,"newHC":30.5,"toHC":null,"source":"england_golf"},{"date":"2024-05-20","scoreDiff":35,"course":"Royal Norwich","tee":"Black 18","score":120,"newHC":30.5,"toHC":null,"source":"england_golf"},{"date":"2024-05-13","scoreDiff":36.4,"course":"RN Academy","tee":"Silver F9","score":47,"newHC":31,"toHC":null,"source":"england_golf"},{"date":"2024-05-07","scoreDiff":38,"course":"Royal Norwich","tee":"Black 18","score":119,"newHC":30.9,"toHC":null,"source":"england_golf"},{"date":"2024-05-02","scoreDiff":47.8,"course":"Dunston","tee":"Red 18","score":124,"newHC":30.9,"toHC":null,"source":"england_golf"},{"date":"2024-04-25","scoreDiff":33.9,"course":"Crail","tee":"Green","score":109,"newHC":30.4,"toHC":null,"source":"england_golf"},{"date":"2024-04-24","scoreDiff":34.2,"course":"St Andrews Strathtyrum","tee":"Green F9","score":48,"newHC":30.4,"toHC":null,"source":"england_golf"},{"date":"2024-04-23","scoreDiff":33.9,"course":"St Andrews Jubilee","tee":"Green","score":117,"newHC":30.4,"toHC":null,"source":"england_golf"},{"date":"2024-04-22","scoreDiff":30.3,"course":"St Andrews Eden","tee":"Green 18","score":106,"newHC":30.4,"toHC":null,"source":"england_golf"},{"date":"2024-04-12","scoreDiff":36,"course":"RN Academy","tee":"Silver F9","score":46,"newHC":30.1,"toHC":null,"source":"england_golf"},{"date":"2024-04-11","scoreDiff":39.6,"course":"Dunston","tee":"Red 18","score":116,"newHC":30.5,"toHC":null,"source":"england_golf"},{"date":"2024-04-10","scoreDiff":39,"course":"Royal Norwich","tee":"Black 18","score":119,"newHC":30.5,"toHC":null,"source":"england_golf"},{"date":"2024-04-03","scoreDiff":33.8,"course":"Royal Norwich","tee":"Black 18","score":113,"newHC":30.3,"toHC":null,"source":"england_golf"},{"date":"2024-03-25","scoreDiff":21.4,"course":"Royal Norwich","tee":"Black 18","score":101,"newHC":30.3,"toHC":null,"source":"england_golf"},{"date":"2024-02-23","scoreDiff":32.2,"course":"Royal Norwich","tee":"Bronze 18","score":107,"newHC":30.3,"toHC":null,"source":"england_golf"},{"date":"2024-02-20","scoreDiff":36,"course":"Sheringham","tee":"Yellow 18","score":115,"newHC":30.3,"toHC":null,"source":"england_golf"},{"date":"2024-02-11","scoreDiff":34.4,"course":"Royal Norwich","tee":"Black B9","score":58,"newHC":33.9,"toHC":null,"source":"england_golf"},{"date":"2024-02-10","scoreDiff":30.3,"course":"Royal Norwich","tee":"Bronze 18","score":105,"newHC":33.9,"toHC":null,"source":"england_golf"},{"date":"2024-02-07","scoreDiff":36,"course":"Royal Norwich","tee":"Bronze 18","score":111,"newHC":33.3,"toHC":null,"source":"england_golf"},{"date":"2024-02-03","scoreDiff":35,"course":"Royal Norwich","tee":"Bronze 18","score":110,"newHC":33,"toHC":null,"source":"england_golf"},{"date":"2023-12-29","scoreDiff":31.9,"course":"RN Academy","tee":"Silver 18","score":89,"newHC":33.3,"toHC":null,"source":"england_golf"},{"date":"2023-12-17","scoreDiff":33.1,"course":"Royal Norwich","tee":"Bronze 18","score":109,"newHC":33.3,"toHC":null,"source":"england_golf"},{"date":"2023-11-21","scoreDiff":41.7,"course":"Royal Norwich","tee":"Bronze 18","score":117,"newHC":33.3,"toHC":null,"source":"england_golf"},{"date":"2023-11-07","scoreDiff":30.3,"course":"Royal Norwich","tee":"Bronze 18","score":105,"newHC":33.6,"toHC":null,"source":"england_golf"},{"date":"2023-11-03","scoreDiff":36.9,"course":"Royal Norwich","tee":"Bronze 18","score":112,"newHC":33.8,"toHC":null,"source":"england_golf"},{"date":"2023-10-31","scoreDiff":35,"course":"Royal Norwich","tee":"Bronze 18","score":110,"newHC":33.8,"toHC":null,"source":"england_golf"},{"date":"2023-10-30","scoreDiff":36.9,"course":"Royal Norwich","tee":"Bronze 18","score":112,"newHC":34.4,"toHC":null,"source":"england_golf"},{"date":"2023-10-29","scoreDiff":31.2,"course":"Royal Norwich","tee":"Bronze 18","score":108,"newHC":34.4,"toHC":null,"source":"england_golf"},{"date":"2023-10-27","scoreDiff":48.8,"course":"RN Academy","tee":"Navy 18","score":107,"newHC":34.6,"toHC":null,"source":"england_golf"},{"date":"2023-10-19","scoreDiff":34.4,"course":"Royal Norwich","tee":"Black F9","score":58,"newHC":34.6,"toHC":null,"source":"england_golf"},{"date":"2023-10-05","scoreDiff":31.8,"course":"Royal Norwich","tee":"Black F9","score":55,"newHC":35.2,"toHC":null,"source":"england_golf"},{"date":"2023-10-03","scoreDiff":36.2,"course":"Royal Norwich","tee":"Black","score":118,"newHC":35.2,"toHC":null,"source":"england_golf"},{"date":"2023-09-20","scoreDiff":39.9,"course":"Royal Norwich","tee":"Black","score":120,"newHC":35.5,"toHC":null,"source":"england_golf"},{"date":"2023-09-17","scoreDiff":34.7,"course":"Royal Norwich","tee":"Black","score":114,"newHC":35.7,"toHC":null,"source":"england_golf"},{"date":"2023-09-07","scoreDiff":31.4,"course":"St Andrews Jubilee","tee":"Green","score":114,"newHC":35.7,"toHC":null,"source":"england_golf"},{"date":"2023-09-06","scoreDiff":32.1,"course":"St Andrews Eden","tee":"Green","score":108,"newHC":36.3,"toHC":null,"source":"england_golf"},{"date":"2023-09-05","scoreDiff":36.6,"course":"St Andrews Strathtyrum","tee":"Green F9","score":48,"newHC":37.1,"toHC":null,"source":"england_golf"},{"date":"2023-09-01","scoreDiff":41.5,"course":"Royal Norwich","tee":"Black 18","score":121,"newHC":36.7,"toHC":null,"source":"england_golf"},{"date":"2023-08-31","scoreDiff":41.6,"course":"Royal Norwich","tee":"Black F9","score":63,"newHC":36.9,"toHC":null,"source":"england_golf"},{"date":"2023-08-29","scoreDiff":39.4,"course":"RN Academy","tee":"Silver B9","score":46,"newHC":36.9,"toHC":null,"source":"england_golf"},{"date":"2023-08-29","scoreDiff":45.6,"course":"Royal Norwich","tee":"Bronze 18","score":119,"newHC":36.9,"toHC":null,"source":"england_golf"},{"date":"2023-08-28","scoreDiff":39.3,"course":"RN Academy","tee":"Silver F9","score":47,"newHC":36.8,"toHC":null,"source":"england_golf"},{"date":"2023-08-25","scoreDiff":40.7,"course":"Royal Norwich","tee":"Black F9","score":63,"newHC":36.8,"toHC":null,"source":"england_golf"},{"date":"2023-08-23","scoreDiff":45.1,"course":"Royal Norwich","tee":"Black 18","score":126,"newHC":36.8,"toHC":null,"source":"england_golf"},{"date":"2023-08-17","scoreDiff":42.5,"course":"Royal Norwich","tee":"Black 18","score":123,"newHC":36.8,"toHC":null,"source":"england_golf"},{"date":"2023-08-16","scoreDiff":38.2,"course":"Royal Norwich","tee":"Black 18","score":118,"newHC":36.8,"toHC":null,"source":"england_golf"},{"date":"2023-08-15","scoreDiff":39.1,"course":"Royal Norwich","tee":"Black B9","score":58,"newHC":36.8,"toHC":null,"source":"england_golf"},{"date":"2023-07-31","scoreDiff":43.3,"course":"Royal Norwich","tee":"Black F9","score":65,"newHC":36.9,"toHC":null,"source":"england_golf"},{"date":"2023-07-25","scoreDiff":45.2,"course":"Royal Norwich","tee":"Black B9","score":65,"newHC":37,"toHC":null,"source":"england_golf"},{"date":"2023-07-25","scoreDiff":37.3,"course":"Royal Norwich","tee":"Black F9","score":58,"newHC":36.9,"toHC":null,"source":"england_golf"},{"date":"2023-07-21","scoreDiff":36.2,"course":"RN Academy","tee":"Silver 18","score":91,"newHC":36.9,"toHC":null,"source":"england_golf"},{"date":"2023-07-20","scoreDiff":41.8,"course":"Royal Norwich","tee":"Black F9","score":64,"newHC":37.3,"toHC":null,"source":"england_golf"},{"date":"2023-07-20","scoreDiff":39.1,"course":"Royal Norwich","tee":"Black B9","score":58,"newHC":36.9,"toHC":null,"source":"england_golf"},{"date":"2023-07-16","scoreDiff":40.8,"course":"Royal Norwich","tee":"Black 18","score":121,"newHC":36.9,"toHC":null,"source":"england_golf"},{"date":"2023-07-09","scoreDiff":38.1,"course":"Royal Norwich","tee":"Black F9","score":60,"newHC":36.6,"toHC":null,"source":"england_golf"},{"date":"2023-07-05","scoreDiff":28.6,"course":"Kilspindie","tee":"Green 18","score":105,"newHC":36.6,"toHC":null,"source":"england_golf"},{"date":"2023-07-04","scoreDiff":38.9,"course":"Craigielaw","tee":"Green 18","score":119,"newHC":36.7,"toHC":null,"source":"england_golf"},{"date":"2023-07-01","scoreDiff":42.9,"course":"Gullane 3","tee":"Red 18","score":114,"newHC":39.1,"toHC":null,"source":"england_golf"},{"date":"2023-06-30","scoreDiff":40.8,"course":"Dalmahoy","tee":"Red 18","score":126,"newHC":39.2,"toHC":null,"source":"england_golf"},{"date":"2023-06-29","scoreDiff":38.2,"course":"Dalmahoy","tee":"Red 18","score":108,"newHC":39.2,"toHC":null,"source":"england_golf"},{"date":"2023-06-23","scoreDiff":41.1,"course":"RN Academy","tee":"Silver 18","score":96,"newHC":39.2,"toHC":null,"source":"england_golf"},{"date":"2023-06-21","scoreDiff":39.4,"course":"Royal Norwich","tee":"Bronze B9","score":55,"newHC":39.2,"toHC":null,"source":"england_golf"},{"date":"2023-06-19","scoreDiff":40.8,"course":"Royal Norwich","tee":"Bronze 18","score":115,"newHC":39.2,"toHC":null,"source":"england_golf"},{"date":"2023-06-15","scoreDiff":41.3,"course":"Royal Norwich","tee":"Black B9","score":57,"newHC":39.3,"toHC":null,"source":"england_golf"},{"date":"2023-06-15","scoreDiff":40.6,"course":"Royal Norwich","tee":"Black F9","score":62,"newHC":39.3,"toHC":null,"source":"england_golf"},{"date":"2023-06-11","scoreDiff":39.9,"course":"Royal Norwich","tee":"Bronze B9","score":57,"newHC":39.3,"toHC":null,"source":"england_golf"},{"date":"2023-06-10","scoreDiff":38.8,"course":"Royal Norwich","tee":"Bronze F9","score":56,"newHC":39.5,"toHC":null,"source":"england_golf"},{"date":"2023-06-07","scoreDiff":42.3,"course":"Royal Norwich","tee":"Bronze B9","score":58,"newHC":39.7,"toHC":null,"source":"england_golf"},{"date":"2023-06-07","scoreDiff":37.4,"course":"Royal Norwich","tee":"Bronze F9","score":54,"newHC":40.1,"toHC":null,"source":"england_golf"},{"date":"2023-06-06","scoreDiff":39.4,"course":"Royal Norwich","tee":"Bronze B9","score":55,"newHC":40.1,"toHC":null,"source":"england_golf"},{"date":"2023-06-06","scoreDiff":36.5,"course":"Royal Norwich","tee":"Bronze F9","score":51,"newHC":41.1,"toHC":null,"source":"england_golf"},{"date":"2023-06-05","scoreDiff":37,"course":"Bawburgh","tee":"Red F9","score":53,"newHC":41.4,"toHC":null,"source":"england_golf"},{"date":"2023-06-03","scoreDiff":46.9,"course":"RN Academy","tee":"Silver B9","score":50,"newHC":42.7,"toHC":null,"source":"england_golf"},{"date":"2023-06-03","scoreDiff":41.7,"course":"RN Academy","tee":"Silver F9","score":48,"newHC":43.8,"toHC":null,"source":"england_golf"},{"date":"2023-05-31","scoreDiff":42.7,"course":"Royal Norwich","tee":"Bronze 18","score":116,"newHC":43.8,"toHC":null,"source":"england_golf"},{"date":"2023-05-30","scoreDiff":43.1,"course":"Royal Norwich","tee":"Bronze F9","score":57,"newHC":44.3,"toHC":null,"source":"england_golf"},{"date":"2023-05-29","scoreDiff":46.9,"course":"Royal Norwich","tee":"Bronze F9","score":61,"newHC":44.6,"toHC":null,"source":"england_golf"},{"date":"2023-05-27","scoreDiff":38.9,"course":"Royal Norwich","tee":"Bronze 18","score":113,"newHC":45.1,"toHC":null,"source":"england_golf"},{"date":"2023-04-30","scoreDiff":46.9,"course":"Royal Norwich","tee":"Bronze F9","score":60,"newHC":44.7,"toHC":null,"source":"england_golf"},{"date":"2023-04-29","scoreDiff":46.1,"course":"RN Academy","tee":"Silver F9","score":49,"newHC":45.6,"toHC":null,"source":"england_golf"},{"date":"2023-04-28","scoreDiff":47.8,"course":"Royal Norwich","tee":"Bronze F9","score":61,"newHC":45.6,"toHC":null,"source":"england_golf"},{"date":"2023-04-27","scoreDiff":54,"course":"RN Academy","tee":"Silver F9","score":56,"newHC":45.8,"toHC":null,"source":"england_golf"},{"date":"2023-04-26","scoreDiff":47.5,"course":"Royal Norwich","tee":"Bronze 18","score":121,"newHC":45.7,"toHC":null,"source":"england_golf"},{"date":"2023-04-25","scoreDiff":49.7,"course":"Royal Norwich","tee":"Bronze F9","score":63,"newHC":45.7,"toHC":null,"source":"england_golf"},{"date":"2023-04-14","scoreDiff":46.9,"course":"Royal Norwich","tee":"Bronze F9","score":60,"newHC":45.7,"toHC":null,"source":"england_golf"},{"date":"2023-04-13","scoreDiff":49.1,"course":"RN Academy","tee":"Silver B9","score":51,"newHC":45.7,"toHC":null,"source":"england_golf"},{"date":"2023-04-13","scoreDiff":50.6,"course":"RN Academy","tee":"Silver F9","score":54,"newHC":45.8,"toHC":null,"source":"england_golf"},{"date":"2023-04-12","scoreDiff":46.9,"course":"Royal Norwich","tee":"Bronze F9","score":61,"newHC":45.8,"toHC":null,"source":"england_golf"},{"date":"2023-04-11","scoreDiff":47.9,"course":"RN Academy","tee":"Silver 18","score":101,"newHC":45.5,"toHC":null,"source":"england_golf"},{"date":"2023-04-09","scoreDiff":43.2,"course":"RN Academy","tee":"Silver 18","score":97,"newHC":45.3,"toHC":null,"source":"england_golf"},{"date":"2023-04-08","scoreDiff":50.7,"course":"Royal Norwich","tee":"Bronze F9","score":64,"newHC":45.3,"toHC":null,"source":"england_golf"},{"date":"2023-04-07","scoreDiff":48.8,"course":"Royal Norwich","tee":"Bronze F9","score":63,"newHC":45.7,"toHC":null,"source":"england_golf"},{"date":"2023-04-02","scoreDiff":48.8,"course":"Royal Norwich","tee":"Bronze F9","score":63,"newHC":45.7,"toHC":null,"source":"england_golf"},{"date":"2023-03-27","scoreDiff":47.1,"course":"Royal Norwich","tee":"Bronze B9","score":60,"newHC":45.3,"toHC":null,"source":"england_golf"},{"date":"2023-03-05","scoreDiff":45,"course":"RN Academy","tee":"Silver F9","score":49,"newHC":45.3,"toHC":null,"source":"england_golf"},{"date":"2023-03-03","scoreDiff":52.9,"course":"RN Academy","tee":"Silver F9","score":56,"newHC":45.3,"toHC":null,"source":"england_golf"},{"date":"2023-02-26","scoreDiff":43.3,"course":"Royal Norwich","tee":"Bronze B9","score":54,"newHC":45.4,"toHC":null,"source":"england_golf"},{"date":"2023-02-17","scoreDiff":46.1,"course":"RN Academy","tee":"Silver F9","score":49,"newHC":45.4,"toHC":null,"source":"england_golf"},{"date":"2023-02-14","scoreDiff":54,"course":"RN Academy","tee":"Silver F9","score":56,"newHC":47.7,"toHC":null,"source":"england_golf"},{"date":"2023-02-02","scoreDiff":54.8,"course":"Royal Norwich","tee":"Bronze B9","score":67,"newHC":48.5,"toHC":null,"source":"england_golf"},{"date":"2023-01-01","scoreDiff":48.9,"course":"Royal Norwich","tee":"Bronze F9","score":59,"newHC":48.5,"toHC":null,"source":"england_golf"},{"date":"2023-01-01","scoreDiff":50,"course":"Royal Norwich","tee":"Bronze B9","score":59,"newHC":47.5,"toHC":null,"source":"england_golf"},{"date":"2022-12-04","scoreDiff":52.9,"course":"Royal Norwich","tee":"Bronze B9","score":61,"newHC":50,"toHC":null,"source":"england_golf"}],"nonCounted":[{"date":"2026-05-09","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"toHC":3,"source":"non_counted"},{"date":"2026-05-02","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"toHC":3,"source":"non_counted"},{"date":"2026-04-28","scoreDiff":28.385600000000007,"course":"Heacham","tee":"Red","score":104,"toHC":6,"source":"non_counted"},{"date":"2026-04-25","scoreDiff":25.635821,"course":"Royal Norwich","tee":"Black","score":105,"toHC":3,"source":"non_counted"},{"date":"2026-04-24","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"toHC":1,"source":"non_counted"},{"date":"2026-04-22","scoreDiff":25.635821,"course":"Royal Norwich","tee":"Black","score":105,"toHC":4,"source":"non_counted"},{"date":"2026-04-21","scoreDiff":23.865600000000004,"course":"Heacham","tee":"Red","score":99,"toHC":1,"source":"non_counted"},{"date":"2026-04-20","scoreDiff":23.865600000000004,"course":"Heacham","tee":"Red","score":99,"toHC":1,"source":"non_counted"},{"date":"2026-04-18","scoreDiff":23.949254,"course":"Royal Norwich","tee":"Black","score":103,"toHC":2,"source":"non_counted"},{"date":"2026-04-15","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"toHC":3,"source":"non_counted"},{"date":"2026-04-13","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"toHC":1,"source":"non_counted"},{"date":"2026-04-13","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"toHC":1,"source":"non_counted"},{"date":"2026-04-09","scoreDiff":25.635821,"course":"Royal Norwich","tee":"Black","score":105,"toHC":1,"source":"non_counted"},{"date":"2026-04-08","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"toHC":1,"source":"non_counted"},{"date":"2026-04-07","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"toHC":1,"source":"non_counted"},{"date":"2026-04-05","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"toHC":1,"source":"non_counted"},{"date":"2026-04-04","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"toHC":3,"source":"non_counted"},{"date":"2026-04-01","scoreDiff":31.538806,"course":"Royal Norwich","tee":"Black","score":112,"toHC":11,"source":"non_counted"},{"date":"2026-03-29","scoreDiff":31.9,"course":"RN Academy","tee":"Silver","score":89,"toHC":null,"source":"non_counted"},{"date":"2026-03-25","scoreDiff":19.2,"course":"Royal Hua Hin","tee":"Red","score":95,"toHC":null,"source":"non_counted"},{"date":"2026-03-24","scoreDiff":23.7,"course":"Royal Hua Hin","tee":"Red","score":100,"toHC":null,"source":"non_counted"},{"date":"2026-03-19","scoreDiff":32.1,"course":"Palm Hills","tee":"Red","score":102,"toHC":null,"source":"non_counted"},{"date":"2026-03-18","scoreDiff":30.1,"course":"Majestic Creek","tee":"Red","score":104,"toHC":null,"source":"non_counted"},{"date":"2026-03-17","scoreDiff":21.9,"course":"Royal Hua Hin","tee":"Red","score":98,"toHC":null,"source":"non_counted"},{"date":"2026-03-16","scoreDiff":26,"course":"Lakeview AB","tee":"Red","score":97,"toHC":null,"source":"non_counted"},{"date":"2026-03-13","scoreDiff":21.9,"course":"Royal Hua Hin","tee":"Red","score":98,"toHC":null,"source":"non_counted"},{"date":"2026-03-12","scoreDiff":28,"course":"Lakeview AB","tee":"Red","score":99,"toHC":null,"source":"non_counted"},{"date":"2026-03-11","scoreDiff":31.7,"course":"SeaPines","tee":"Red","score":106,"toHC":null,"source":"non_counted"},{"date":"2026-03-09","scoreDiff":21,"course":"Royal Hua Hin","tee":"Red","score":97,"toHC":null,"source":"non_counted"},{"date":"2026-03-05","scoreDiff":33.1,"course":"Palm Hills","tee":"Red","score":103,"toHC":null,"source":"non_counted"},{"date":"2026-03-04","scoreDiff":30.1,"course":"Majestic Creek","tee":"Red","score":104,"toHC":null,"source":"non_counted"},{"date":"2026-03-03","scoreDiff":29,"course":"Pinapple Valley","tee":"Red","score":99,"toHC":null,"source":"non_counted"},{"date":"2026-02-28","scoreDiff":30.3,"course":"Springfield AB","tee":"Red","score":105,"toHC":null,"source":"non_counted"},{"date":"2026-02-25","scoreDiff":32.5,"course":"Black Mountain","tee":"Red","score":107,"toHC":null,"source":"non_counted"},{"date":"2026-02-23","scoreDiff":36.3,"course":"SeaPines","tee":"Red","score":111,"toHC":null,"source":"non_counted"},{"date":"2026-02-22","scoreDiff":35,"course":"Pinapple Valley","tee":"Red","score":105,"toHC":null,"source":"non_counted"},{"date":"2026-02-18","scoreDiff":27,"course":"Lakeview AB","tee":"Red","score":98,"toHC":null,"source":"non_counted"},{"date":"2026-02-17","scoreDiff":33,"course":"Lakeview AB","tee":"Red","score":104,"toHC":null,"source":"non_counted"},{"date":"2026-02-16","scoreDiff":25.5,"course":"Royal Hua Hin","tee":"Red","score":102,"toHC":null,"source":"non_counted"},{"date":"2026-02-11","scoreDiff":32,"course":"Lakeview CD","tee":"Red","score":104,"toHC":null,"source":"non_counted"},{"date":"2026-02-10","scoreDiff":35,"course":"Lakeview AB","tee":"Red","score":106,"toHC":null,"source":"non_counted"},{"date":"2026-02-09","scoreDiff":34.4,"course":"Royal Hua Hin","tee":"Red","score":112,"toHC":null,"source":"non_counted"},{"date":"2026-02-05","scoreDiff":27.6,"course":"Springfield AB","tee":"Red","score":102,"toHC":null,"source":"non_counted"},{"date":"2026-02-03","scoreDiff":33,"course":"Lakeview AB","tee":"Red","score":104,"toHC":null,"source":"non_counted"},{"date":"2025-09-25","scoreDiff":36.5,"course":"Springfield BC","tee":"Red","score":115,"toHC":null,"source":"non_counted"},{"date":"2025-09-23","scoreDiff":41,"course":"Palm Hills","tee":"Red","score":112,"toHC":null,"source":"non_counted"},{"date":"2025-09-08","scoreDiff":23.1731884057971,"course":"Ely","tee":"Red","score":103,"toHC":null,"source":"non_counted"},{"date":"2025-08-30","scoreDiff":27.322388,"course":"Royal Norwich","tee":"Black","score":107,"toHC":null,"source":"non_counted"},{"date":"2025-08-29","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"toHC":null,"source":"non_counted"},{"date":"2025-08-28","scoreDiff":21.11085271317829,"course":"Bawburgh","tee":"Red","score":98,"toHC":null,"source":"non_counted"},{"date":"2025-08-26","scoreDiff":22.262687,"course":"Royal Norwich","tee":"Black","score":101,"toHC":null,"source":"non_counted"},{"date":"2025-08-25","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"toHC":null,"source":"non_counted"},{"date":"2025-08-23","scoreDiff":27.322388,"course":"Royal Norwich","tee":"Black","score":107,"toHC":null,"source":"non_counted"},{"date":"2025-08-20","scoreDiff":25.635821,"course":"Royal Norwich","tee":"Black","score":105,"toHC":null,"source":"non_counted"},{"date":"2025-08-19","scoreDiff":20.249600000000004,"course":"Heacham Manor","tee":"Red","score":95,"toHC":null,"source":"non_counted"},{"date":"2025-08-13","scoreDiff":21.868345323741014,"course":"John O Gaunt","tee":"Red","score":104,"toHC":null,"source":"non_counted"},{"date":"2025-08-12","scoreDiff":28.582352941176463,"course":"Mundesley","tee":"Yellow","score":100,"toHC":null,"source":"non_counted"},{"date":"2025-08-11","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"toHC":null,"source":"non_counted"},{"date":"2025-08-09","scoreDiff":21.419403,"course":"Royal Norwich","tee":"Black","score":100,"toHC":null,"source":"non_counted"},{"date":"2025-08-07","scoreDiff":20.997761194029856,"course":"Thetford","tee":"Red","score":100,"toHC":null,"source":"non_counted"},{"date":"2025-08-04","scoreDiff":25.635821,"course":"Royal Norwich","tee":"Black","score":105,"toHC":null,"source":"non_counted"},{"date":"2025-07-29","scoreDiff":26.479104,"course":"Royal Norwich","tee":"Black","score":106,"toHC":null,"source":"non_counted"},{"date":"2025-07-28","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"toHC":null,"source":"non_counted"},{"date":"2025-07-22","scoreDiff":27.467692307692303,"course":"Wensum Wensum","tee":"Green","score":105,"toHC":null,"source":"non_counted"},{"date":"2025-07-14","scoreDiff":28.08857142857142,"course":"Blofield","tee":"Orange","score":92,"toHC":null,"source":"non_counted"},{"date":"2025-07-11","scoreDiff":24.94692307692308,"course":"Rookery Park","tee":"Red","score":104,"toHC":null,"source":"non_counted"},{"date":"2025-07-10","scoreDiff":29.876515151515157,"course":"Royal Cromer","tee":"Red","score":109,"toHC":null,"source":"non_counted"},{"date":"2025-07-07","scoreDiff":21.14193548387097,"course":"Halesworth","tee":"Red","score":95,"toHC":null,"source":"non_counted"},{"date":"2025-07-05","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"toHC":null,"source":"non_counted"},{"date":"2025-06-28","scoreDiff":23.949254,"course":"Royal Norwich","tee":"Black","score":103,"toHC":null,"source":"non_counted"},{"date":"2025-06-26","scoreDiff":23.618852,"course":"Royal Norwich","tee":"Bronze","score":97,"toHC":null,"source":"non_counted"},{"date":"2025-06-22","scoreDiff":19.732836,"course":"Royal Norwich","tee":"Black","score":"98","toHC":null,"source":"non_counted"},{"date":"2025-06-21","scoreDiff":27.322388,"course":"Royal Norwich","tee":"Black","score":"107","toHC":null,"source":"non_counted"},{"date":"2025-06-20","scoreDiff":25.913533834586467,"course":"Kings Lynn","tee":"Red","score":105,"toHC":null,"source":"non_counted"},{"date":"2025-06-17","scoreDiff":26.163846153846148,"course":"Stoke by Nayland","tee":"Yellow","score":"101","toHC":null,"source":"non_counted"},{"date":"2025-06-16","scoreDiff":25.635821,"course":"Royal Norwich","tee":"Black","score":105,"toHC":null,"source":"non_counted"},{"date":"2025-06-11","scoreDiff":20.716666666666665,"course":"Ely","tee":"Red","score":100,"toHC":null,"source":"non_counted"},{"date":"2025-05-31","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"toHC":null,"source":"non_counted"},{"date":"2025-05-03","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"toHC":null,"source":"non_counted"},{"date":"2025-04-05","scoreDiff":24.792537,"course":"RN Main 18","tee":"Black","score":104,"toHC":null,"source":"non_counted"},{"date":"2025-02-04","scoreDiff":29.466923076923084,"course":"RN Main 18","tee":"Black","score":108,"toHC":null,"source":"non_counted"},{"date":"2024-12-28","scoreDiff":34,"course":"RN Main F9","tee":"bronze","score":54,"toHC":null,"source":"non_counted"},{"date":"2024-12-21","scoreDiff":33,"course":"RN Main F9","tee":"bronze","score":53,"toHC":null,"source":"non_counted"},{"date":"2024-12-18","scoreDiff":31.4,"course":"RN Academy 6","tee":"Silver","score":28,"toHC":null,"source":"non_counted"},{"date":"2024-11-30","scoreDiff":36.08403361344538,"course":"RN Main 18","tee":"Bronze","score":109,"toHC":null,"source":"non_counted"},{"date":"2024-11-16","scoreDiff":34.18487394957983,"course":"RN Main 18","tee":"Bronze","score":107,"toHC":null,"source":"non_counted"},{"date":"2024-11-11","scoreDiff":35.134453781512605,"course":"RN Main 18","tee":"Bronze","score":108,"toHC":null,"source":"non_counted"},{"date":"2024-10-30","scoreDiff":35.134453781512605,"course":"RN Main 18","tee":"Bronze","score":108,"toHC":null,"source":"non_counted"},{"date":"2024-09-10","scoreDiff":32.73505154639176,"course":"RN Academy 18","tee":"Silver","score":87,"toHC":null,"source":"non_counted"},{"date":"2024-09-07","scoreDiff":29.466923076923084,"course":"RN Main 18","tee":"Black","score":108,"toHC":null,"source":"non_counted"},{"date":"2025-06-18","scoreDiff":20.576119,"course":"Royal Norwich","tee":"Black","score":99,"source":"non_counted","toHC":null}],"allPlayed":[{"date":"2026-05-12","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"potentialHC":20.369264552238807,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-05-09","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-05-05","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-05-02","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-04-28","scoreDiff":28.385600000000007,"course":"Heacham","tee":"Red","score":104,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-04-25","scoreDiff":25.635821,"course":"Royal Norwich","tee":"Black","score":105,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-04-24","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"potentialHC":20.55676455223881,"highestCountingDiff":"20.99 O60","source":"all_played"},{"date":"2026-04-22","scoreDiff":25.635821,"course":"Royal Norwich","tee":"Black","score":105,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-04-21","scoreDiff":23.865600000000004,"course":"Heacham","tee":"Red","score":99,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-04-20","scoreDiff":23.865600000000004,"course":"Heacham","tee":"Red","score":99,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-04-18","scoreDiff":23.949254,"course":"Royal Norwich","tee":"Black","score":103,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-04-15","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-04-13","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-04-13","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-04-09","scoreDiff":25.635821,"course":"Royal Norwich","tee":"Black","score":105,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-04-08","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-04-07","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-04-05","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-04-04","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-04-01","scoreDiff":31.538806,"course":"Royal Norwich","tee":"Black","score":112,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-03-29","scoreDiff":31.9,"course":"RN Academy","tee":"Silver","score":89,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-03-25","scoreDiff":19.2,"course":"Royal Hua Hin","tee":"Red","score":95,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-03-24","scoreDiff":23.7,"course":"Royal Hua Hin","tee":"Red","score":100,"potentialHC":20.55676455223881,"highestCountingDiff":"20.99 061","source":"all_played"},{"date":"2026-03-19","scoreDiff":32.1,"course":"Palm Hills","tee":"Red","score":102,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-03-18","scoreDiff":30.1,"course":"Majestic Creek","tee":"Red","score":104,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-03-17","scoreDiff":21.9,"course":"Royal Hua Hin","tee":"Red","score":98,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-03-16","scoreDiff":26,"course":"Lakeview AB","tee":"Red","score":97,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-03-13","scoreDiff":21.9,"course":"Royal Hua Hin","tee":"Red","score":98,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-03-12","scoreDiff":28,"course":"Lakeview AB","tee":"Red","score":99,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-03-11","scoreDiff":31.7,"course":"SeaPines","tee":"Red","score":106,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-03-09","scoreDiff":21,"course":"Royal Hua Hin","tee":"Red","score":97,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-03-05","scoreDiff":33.1,"course":"Palm Hills","tee":"Red","score":103,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-03-04","scoreDiff":30.1,"course":"Majestic Creek","tee":"Red","score":104,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-03-03","scoreDiff":29,"course":"Pinapple Valley","tee":"Red","score":99,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-02-28","scoreDiff":30.3,"course":"Springfield AB","tee":"Red","score":105,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-02-25","scoreDiff":32.5,"course":"Black Mountain","tee":"Red","score":107,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-02-23","scoreDiff":36.3,"course":"SeaPines","tee":"Red","score":111,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-02-22","scoreDiff":35,"course":"Pinapple Valley","tee":"Red","score":105,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-02-18","scoreDiff":27,"course":"Lakeview AB","tee":"Red","score":98,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-02-17","scoreDiff":33,"course":"Lakeview AB","tee":"Red","score":104,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-02-16","scoreDiff":25.5,"course":"Royal Hua Hin","tee":"Red","score":102,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-02-11","scoreDiff":32,"course":"Lakeview CD","tee":"Red","score":104,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-02-10","scoreDiff":35,"course":"Lakeview AB","tee":"Red","score":106,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-02-09","scoreDiff":34.4,"course":"Royal Hua Hin","tee":"Red","score":112,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-02-05","scoreDiff":27.6,"course":"Springfield AB","tee":"Red","score":102,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2026-02-03","scoreDiff":33,"course":"Lakeview AB","tee":"Red","score":104,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-12-12","scoreDiff":33.7,"course":"RN Academy","tee":"Silver","score":89,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-12-03","scoreDiff":28.8,"course":"RN Academy","tee":"Silver","score":44,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-09-25","scoreDiff":36.5,"course":"Springfield BC","tee":"Red","score":115,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-09-23","scoreDiff":41,"course":"Palm Hills","tee":"Red","score":112,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-09-15","scoreDiff":24.9,"course":"Bawburgh","tee":"Red","score":101,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-09-13","scoreDiff":25.597959183673474,"course":"RN Academy","tee":"Silver","score":82,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-09-10","scoreDiff":27.322388,"course":"Royal Norwich","tee":"Black","score":107,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-09-08","scoreDiff":23.1731884057971,"course":"Ely","tee":"Red","score":103,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-09-05","scoreDiff":27.322388,"course":"Royal Norwich","tee":"Black","score":107,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-09-02","scoreDiff":22.262687,"course":"Royal Norwich","tee":"Black","score":101,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-08-30","scoreDiff":27.322388,"course":"Royal Norwich","tee":"Black","score":107,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-08-29","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-08-29","scoreDiff":20.249600000000004,"course":"Heacham Manor","tee":"Red","score":95,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-08-28","scoreDiff":21.11085271317829,"course":"Bawburgh","tee":"Red","score":98,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-08-27","scoreDiff":21.419403,"course":"Royal Norwich","tee":"Black","score":100,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-08-26","scoreDiff":22.262687,"course":"Royal Norwich","tee":"Black","score":101,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-08-25","scoreDiff":23.10597,"course":"Royal Norwich","tee":"Black","score":102,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-08-23","scoreDiff":27.322388,"course":"Royal Norwich","tee":"Black","score":107,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-08-21","scoreDiff":26.36666666666666,"course":"Bawburgh","tee":"Red","score":104,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-08-20","scoreDiff":25.635821,"course":"Royal Norwich","tee":"Black","score":105,"potentialHC":20.55676455223881,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-08-13","scoreDiff":21.868345323741014,"course":"John O Gaunt","tee":"Red","score":104,"potentialHC":20.668306487722678,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-08-12","scoreDiff":28.582352941176463,"course":"Mundesley","tee":"Yellow","score":100,"potentialHC":20.668306487722678,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-08-11","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"potentialHC":20.668306487722678,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-08-09","scoreDiff":21.419403,"course":"Royal Norwich","tee":"Black","score":100,"potentialHC":20.668306487722678,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-08-04","scoreDiff":25.635821,"course":"Royal Norwich","tee":"Black","score":105,"potentialHC":21.15405371674152,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-07-29","scoreDiff":26.479104,"course":"Royal Norwich","tee":"Black","score":106,"potentialHC":21.15405371674152,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-07-28","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"potentialHC":21.15405371674152,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-07-22","scoreDiff":27.467692307692303,"course":"Wensum Wensum","tee":"Green","score":105,"potentialHC":21.15405371674152,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-07-14","scoreDiff":28.08857142857142,"course":"Blofield","tee":"Orange","score":92,"potentialHC":21.15405371674152,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-07-11","scoreDiff":24.94692307692308,"course":"Rookery Park","tee":"Red","score":104,"potentialHC":21.15405371674152,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-07-10","scoreDiff":29.876515151515157,"course":"Royal Cromer","tee":"Red","score":109,"potentialHC":21.15405371674152,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-07-07","scoreDiff":20.997761194029856,"course":"Thetford","tee":"Red","score":100,"potentialHC":20.8264173086182,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-07-07","scoreDiff":21.14193548387097,"course":"Halesworth","tee":"Red","score":95,"potentialHC":21.15405371674152,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-07-05","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"potentialHC":21.498811781257647,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-07-02","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"potentialHC":21.498811781257647,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-07-01","scoreDiff":22.262687,"course":"Royal Norwich","tee":"Black","score":101,"potentialHC":21.498811781257647,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-28","scoreDiff":23.949254,"course":"Royal Norwich","tee":"Black","score":103,"potentialHC":21.728475960362125,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-26","scoreDiff":23.618852,"course":"Royal Norwich","tee":"Bronze","score":97,"potentialHC":21.728475960362125,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-24","scoreDiff":23.949254,"course":"Royal Norwich","tee":"Black","score":"103","potentialHC":21.851119402985077,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-23","scoreDiff":20.576119,"course":"Royal Norwich","tee":"Black","score":"99","potentialHC":21.93861940298508,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-22","scoreDiff":19.732836,"course":"Royal Norwich","tee":"Black","score":"98","potentialHC":22.46660447761194,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-21","scoreDiff":27.322388,"course":"Royal Norwich","tee":"Black","score":"107","potentialHC":23.1,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-20","scoreDiff":25.913533834586467,"course":"Kings Lynn","tee":"Red","score":105,"potentialHC":23.1,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-19","scoreDiff":24.6,"course":"Dereham","tee":"Red","score":99,"potentialHC":23.1,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-18","scoreDiff":20.576119,"course":"Royal Norwich","tee":"Black","score":99,"potentialHC":23.1625,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-17","scoreDiff":26.163846153846148,"course":"Stoke by Nayland","tee":"Yellow","score":"101","potentialHC":23.7875,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-16","scoreDiff":25.635821,"course":"Royal Norwich","tee":"Black","score":105,"potentialHC":23.7875,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-14","scoreDiff":31.6,"course":"Cromer","tee":"Red","score":111,"potentialHC":21.15405371674152,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-13","scoreDiff":27.322388,"course":"Royal Norwich","tee":"Black","score":107,"potentialHC":23.7875,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-12","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"potentialHC":23.7875,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-11","scoreDiff":20.7,"course":"Ely","tee":"Red","score":100,"potentialHC":24,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-10","scoreDiff":27.322388,"course":"Royal Norwich","tee":"Black","score":"107","potentialHC":24.825000000000003,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-06","scoreDiff":26.479104,"course":"Royal Norwich","tee":"Black","score":"106","potentialHC":24.7875,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-06-05","scoreDiff":34.2,"course":"Swaffham","tee":"Red","score":111,"potentialHC":24.8375,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-05-31","scoreDiff":24.792537,"course":"Royal Norwich","tee":"Black","score":104,"potentialHC":24.8375,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-05-26","scoreDiff":"28.1","course":"Majestic Creek","tee":"Red","score":"101","potentialHC":25.199999999999996,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-05-25","scoreDiff":"31","course":"Pineapple","tee":"Red","score":"101","potentialHC":25.199999999999996,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-05-24","scoreDiff":"30.9","course":"Royal Hua Hin","tee":"Red","score":"108","potentialHC":25.199999999999996,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-05-22","scoreDiff":"24.1","course":"Royal Hua Hin","tee":"Yellow","score":"101","potentialHC":25.199999999999996,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-05-17","scoreDiff":"24.6","course":"Royal Hua Hin","tee":"Red","score":"101","potentialHC":25.7,"highestCountingDiff":null,"source":"all_played"},{"date":"2025-05-12","scoreDiff":"36.7","course":"Springfield","tee":"Red","score":"112","potentialHC":26.15,"highestCountingDiff":null,"source":"all_played"}]}
+
+const COURSE_DB_KEY = "golf_course_db_v1";
+const VISITED_KEY = "golf_visited_courses_v1";
+
+function loadVisited() {
+  try { const s = localStorage.getItem(VISITED_KEY); if (s) return JSON.parse(s); } catch(e) {}
+  return [];
+}
+function saveVisited(v) {
+  try { localStorage.setItem(VISITED_KEY, JSON.stringify(v)); } catch(e) {}
+}
+// Clean up old versioned storage keys (no longer needed)
+['v1','v2','v3','v4','v5','v6','v7','v8','v9'].forEach(v => {
+  try { localStorage.removeItem('golf_hc_tracker_' + v); } catch(e) {}
+  try { localStorage.removeItem('golf_hc_tracker_' + v + '_fingerprint'); } catch(e) {}
+});
+
+const BUILT_IN_COURSES = [{"course":"RN 18","tee":"Black","rating":74.6,"slope":134,"par":72},{"course":"RN 18","tee":"Bronze","rating":71.5,"slope":122,"par":72},{"course":"RN Main","tee":"Black 18","rating":74.6,"slope":134,"par":72},{"course":"RN Main","tee":"Black","rating":74.6,"slope":134,"par":72},{"course":"RN Main","tee":"Black F9","rating":36.4,"slope":136,"par":36},{"course":"RN Main","tee":"Black B9","rating":36.9,"slope":140,"par":36},{"course":"RN Main","tee":"Bronze 18","rating":71.5,"slope":122,"par":72},{"course":"RN Main","tee":"Bronze","rating":71.5,"slope":122,"par":72},{"course":"RN Main","tee":"Bronze F9","rating":35.3,"slope":126,"par":36},{"course":"RN Main","tee":"Bronze B9","rating":35.9,"slope":130,"par":36},{"course":"RN Main 18","tee":"Black","rating":74.6,"slope":134,"par":72},{"course":"RN Main 18","tee":"Bronze","rating":71.5,"slope":122,"par":72},{"course":"RN18","tee":"Black","rating":74.6,"slope":134,"par":72},{"course":"RN Academy","tee":"Silver 18","rating":67.5,"slope":118,"par":70},{"course":"RN Academy","tee":"Silver","rating":67.5,"slope":118,"par":70},{"course":"RN Academy","tee":"Silver F9","rating":33.5,"slope":116,"par":35},{"course":"RN Academy","tee":"Silver B9","rating":34.0,"slope":120,"par":35},{"course":"RN Academy 18","tee":"Silver","rating":67.5,"slope":118,"par":70},{"course":"Royal Norwich","tee":"Black","rating":74.6,"slope":134,"par":72},{"course":"Bawburgh","tee":"Red","rating":70.8,"slope":123,"par":72},{"course":"Bawburgh","tee":"Red F9","rating":35.1,"slope":121,"par":36},{"course":"Dunston","tee":"Red 18","rating":71.4,"slope":124,"par":72},{"course":"Dunston","tee":"Red F9","rating":35.5,"slope":122,"par":36},{"course":"Dunston","tee":"Red B9","rating":35.9,"slope":126,"par":36},{"course":"Dunston","tee":"Blue 18","rating":73.1,"slope":131,"par":72},{"course":"Dunston","tee":"Blue F9","rating":36.3,"slope":129,"par":36},{"course":"Norfolk Premier","tee":"Orange/Silver","rating":67.2,"slope":116,"par":70},{"course":"Heacham Manor","tee":"Red","rating":68.9,"slope":120,"par":70},{"course":"Heacham","tee":"Red","rating":68.9,"slope":120,"par":70},{"course":"Royal Cromer","tee":"Red","rating":71.6,"slope":126,"par":72},{"course":"Cromer","tee":"Red","rating":71.6,"slope":126,"par":72},{"course":"Sheringham","tee":"Yellow 18","rating":72.4,"slope":132,"par":70},{"course":"Dereham","tee":"Red","rating":69.5,"slope":116,"par":72},{"course":"Ely","tee":"Red","rating":72.1,"slope":128,"par":72},{"course":"John O Gaunt","tee":"Red","rating":73.2,"slope":130,"par":72},{"course":"Lakeside Lodges","tee":"Red 18","rating":68.7,"slope":117,"par":70},{"course":"Mundesley","tee":"Yellow","rating":66.8,"slope":112,"par":70},{"course":"Rookery Park","tee":"Red","rating":73.1,"slope":130,"par":72},{"course":"Swaffham","tee":"Red","rating":69.5,"slope":116,"par":72},{"course":"Thetford","tee":"Red","rating":71.9,"slope":126,"par":72},{"course":"Halesworth","tee":"Red","rating":69.8,"slope":120,"par":72},{"course":"Wensum Wensum","tee":"Green","rating":69.5,"slope":119,"par":72},{"course":"Blofield","tee":"Orange","rating":66.4,"slope":110,"par":70},{"course":"Kings Lynn","tee":"Red","rating":71.8,"slope":125,"par":72},{"course":"Stoke by Nayland","tee":"Yellow","rating":70.9,"slope":124,"par":72},{"course":"St Andrews Strathtyrum","tee":"Green F9","rating":34.2,"slope":116,"par":36},{"course":"St Andrews Eden","tee":"Green","rating":70.1,"slope":122,"par":71},{"course":"St Andrews Eden","tee":"Green 18","rating":70.1,"slope":122,"par":71},{"course":"St Andrews Jubilee","tee":"Green","rating":72.4,"slope":130,"par":72},{"course":"Craigielaw","tee":"Green 18","rating":70.6,"slope":123,"par":71},{"course":"Kilspindie","tee":"Green 18","rating":65.8,"slope":110,"par":69},{"course":"Gullane 3","tee":"Red 18","rating":68.9,"slope":121,"par":70},{"course":"Dalmahoy","tee":"Red 18","rating":73.4,"slope":132,"par":72},{"course":"Crail","tee":"Green","rating":70.8,"slope":126,"par":71},{"course":"Springfield AB","tee":"Red","rating":72.5,"slope":126,"par":72},{"course":"Springfield AB","tee":"red","rating":72.5,"slope":126,"par":72},{"course":"Springfield BC","tee":"Red","rating":72.1,"slope":124,"par":72},{"course":"Royal Hua Hin","tee":"red","rating":72.3,"slope":125,"par":72},{"course":"Royal Hua Hin","tee":"yellow","rating":74.1,"slope":131,"par":72},{"course":"Lakeview AB","tee":"red","rating":71.8,"slope":123,"par":72},{"course":"Lakeview AB","tee":"Red","rating":71.8,"slope":123,"par":72},{"course":"Lakeview CD","tee":"red","rating":71.5,"slope":122,"par":72},{"course":"Palm Hills","tee":"red","rating":72.6,"slope":127,"par":72},{"course":"Palm Hills","tee":"Red","rating":72.6,"slope":127,"par":72},{"course":"SeaPines","tee":"red","rating":71.9,"slope":124,"par":72},{"course":"Majestic Creek","tee":"red","rating":72.1,"slope":125,"par":72},{"course":"Majestic Creek","tee":"Red","rating":72.1,"slope":125,"par":72},{"course":"Pinapple Valley","tee":"red","rating":71.4,"slope":122,"par":72},{"course":"Pinapple Valley","tee":"Red","rating":71.4,"slope":122,"par":72},{"course":"Pineapple","tee":"red","rating":71.4,"slope":122,"par":72},{"course":"Black Mountain","tee":"Red","rating":73.8,"slope":133,"par":72}];
+
+function loadCourseDB() {
+  try {
+    const saved = localStorage.getItem(COURSE_DB_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(BUILT_IN_COURSES));
+}
+
+function saveCourseDB(db) {
+  try { localStorage.setItem(COURSE_DB_KEY, JSON.stringify(db)); } catch(e) {}
+}
+
+function lookupCourse(db, course, tee) {
+  if (!course || !tee) return null;
+  return db.find(c =>
+    c.course.toLowerCase().trim() === course.toLowerCase().trim() &&
+    c.tee.toLowerCase().trim() === tee.toLowerCase().trim()
+  ) || null;
+}
+
+const DATA_FINGERPRINT = "175-90-107-2026-05-12-2026-05-09-2026-05-12";
+const MANUAL_ROUNDS_KEY = "golf_manual_rounds_v3";
+
+// Manual rounds are stored permanently in their own key — never wiped
+function loadManualRounds() {
+  try {
+    const saved = localStorage.getItem(MANUAL_ROUNDS_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return { englandGolf: [], nonCounted: [], allPlayed: [] };
+}
+
+function saveManualRounds(data) {
+  const manual = { englandGolf: [], nonCounted: [], allPlayed: [] };
+  ['englandGolf','nonCounted','allPlayed'].forEach(key => {
+    manual[key] = (data[key] || []).filter(r => r.id);
+  });
+  try { localStorage.setItem(MANUAL_ROUNDS_KEY, JSON.stringify(manual)); } catch(e) {}
+}
+
+// Spreadsheet data always loads fresh — manual rounds merged on top
+function loadData() {
+  const fresh = JSON.parse(JSON.stringify(RAW_DATA));
+  const manual = loadManualRounds();
+  ['englandGolf','nonCounted','allPlayed'].forEach(key => {
+    if (manual[key] && manual[key].length) {
+      fresh[key] = [...manual[key], ...fresh[key]];
+    }
+  });
+  return fresh;
+}
+
+function saveData(data) {
+  // Only persist manual rounds — spreadsheet data always comes from RAW_DATA
+  saveManualRounds(data);
+}
+
+
+const fmt = (v, dp = 1) => v == null ? "—" : Number(v).toFixed(dp);
+const COURSES = [...new Set([...RAW_DATA.englandGolf, ...RAW_DATA.allPlayed]
+  .map(r => r.course).filter(Boolean).map(c => c.trim())
+  .filter(c => !['RN Main','Pineapple','Springfield'].includes(c))
+)].sort();
+
+const TEE_COLORS = { Black: "#1a1a2e", Blue: "#1565c0", Red: "#c62828", Silver: "#78909c", Bronze: "#a1663d", Orange: "#e65100", Yellow: "#f9a825", Green: "#2e7d32", Gold: "#f57f17" };
+const teeColor = (t) => { const k = Object.keys(TEE_COLORS).find(k => t && t.toLowerCase().includes(k.toLowerCase())); return k ? TEE_COLORS[k] : "#888"; };
+
+const TABS = [
+  { id: "dashboard", label: "Dashboard", icon: "ti-dashboard" },
+  { id: "rounds", label: "All Rounds", icon: "ti-list" },
+  { id: "add", label: "Add Round", icon: "ti-circle-plus" },
+  { id: "compare", label: "HC Types", icon: "ti-chart-bar" },
+  { id: "coursesplayed", label: "Courses Played", icon: "ti-map-pin" },
+  { id: "courses", label: "Course DB", icon: "ti-golf" },
+];
+
+const METHOD_META = {
+  englandGolf: { label: "England Golf", color: "#185FA5", bg: "#E6F1FB" },
+  nonCounted: { label: "Non-counted", color: "#993C1D", bg: "#FAECE7" },
+  allPlayed: { label: "All Played (potential)", color: "#0F6E56", bg: "#E1F5EE" },
+};
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function fmtDate(d) {
+  if (!d) return '—';
+  const parts = d.split('-');
+  if (parts.length !== 3) return d;
+  const day = parseInt(parts[2], 10);
+  const month = parseInt(parts[1], 10) - 1;
+  const year = parts[0];
+  const v = day % 100;
+  const suf = (v >= 11 && v <= 13) ? 'th' : ['th','st','nd','rd'][day % 10] || 'th';
+  return `${day}${suf} ${MONTHS[month]} ${year}`;
+}
+
+
+function App() {
+  const [data, setData] = useState(() => loadData());
+  const [tab, setTab] = useState("dashboard");
+  const [editRound, setEditRound] = useState(null);
+  const [search, setSearch] = useState("");
+  const [filterCourse, setFilterCourse] = useState("");
+  const [filterMethod, setFilterMethod] = useState("allPlayed");
+
+  // Sorted list of EG HC values by date — used to look up HC at time of any round
+  const egHCByDate = useMemo(() => {
+    return (data.englandGolf || [])
+      .filter(r => r.newHC != null && r.date)
+      .map(r => ({ date: r.date, hc: Number(r.newHC) }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }, [data]);
+  const [sortField, setSortField] = useState("date");
+  const [sortDir, setSortDir] = useState("desc");
+  const [notification, setNotification] = useState(null);
+  const [courseDB, setCourseDB] = useState(() => loadCourseDB());
+  const [visited, setVisited] = useState(() => loadVisited());
+  useEffect(() => { saveVisited(visited); }, [visited]);
+
+  useEffect(() => { saveCourseDB(courseDB); }, [courseDB]);
+
+  useEffect(() => { saveData(data); }, [data]);
+
+  const notify = (msg, type = "success") => {
+    setNotification({ msg, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  const allRounds = useMemo(() => {
+    const eg = (data.englandGolf || []).map((r, idx) => ({ ...r, method: "englandGolf", _origIdx: idx }));
+    const nc = (data.nonCounted || []).map((r, idx) => ({ ...r, method: "nonCounted", _origIdx: idx }));
+    const ap = (data.allPlayed || []).map((r, idx) => ({ ...r, method: "allPlayed", _origIdx: idx }));
+    const combined = [...eg, ...nc, ...ap];
+    combined.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    return combined;
+  }, [data]);
+
+  // Compute which England Golf rounds are the 8 counting ones (lowest diff in last 20)
+  // Uses original array index to uniquely identify each round
+  const countingSet = useMemo(() => {
+    const egWithIdx = (data.englandGolf || [])
+      .map((r, idx) => ({ ...r, _origIdx: idx }))
+      .filter(r => r.scoreDiff != null && r.date);
+    // Sort newest first to find last 20
+    egWithIdx.sort((a, b) => b.date.localeCompare(a.date));
+    const last20 = egWithIdx.slice(0, 20);
+    // Sort those 20 by diff ascending, then date descending (newer date wins on equal diff)
+    const lowest8 = [...last20]
+      .sort((a, b) => {
+        const diffDelta = Number(a.scoreDiff) - Number(b.scoreDiff);
+        if (diffDelta !== 0) return diffDelta;
+        return b.date.localeCompare(a.date);
+      })
+      .slice(0, 8);
+    // Store original array indices so matching is exact
+    return new Set(lowest8.map(r => r._origIdx));
+  }, [data]);
+
+  // Compute live HC from the 8 counting rounds average
+  const liveEgHC = useMemo(() => {
+    const egWithIdx = (data.englandGolf || [])
+      .map((r, idx) => ({ ...r, _origIdx: idx }))
+      .filter(r => r.scoreDiff != null && r.date);
+    egWithIdx.sort((a, b) => b.date.localeCompare(a.date));
+    const last20 = egWithIdx.slice(0, 20);
+    const lowest8 = [...last20]
+      .sort((a, b) => {
+        const d = Number(a.scoreDiff) - Number(b.scoreDiff);
+        return d !== 0 ? d : b.date.localeCompare(a.date);
+      })
+      .slice(0, 8);
+    if (!lowest8.length) return null;
+    const avg = lowest8.reduce((s, r) => s + Number(r.scoreDiff), 0) / lowest8.length;
+    return { hc: avg, date: lowest8.sort((a,b) => b.date.localeCompare(a.date))[0].date };
+  }, [data]);
+
+  // Live All Played HC: lowest 8 from All Played sheet only
+  // All Played is the definitive combined record — avoids duplicates from non-counted
+  // Single source of truth — used by both stat card and counting panel
+  const { liveAllHC, allCounting8Rounds } = useMemo(() => {
+    const combined = (data.allPlayed || []).filter(r => r.scoreDiff != null && r.date);
+    const lowest8 = [...combined]
+      .sort((a, b) => {
+        const d = Number(a.scoreDiff) - Number(b.scoreDiff);
+        return d !== 0 ? d : b.date.localeCompare(a.date);
+      })
+      .slice(0, 8)
+      .sort((a, b) => b.date.localeCompare(a.date));
+    if (!lowest8.length) return { liveAllHC: null, allCounting8Rounds: [] };
+    const avg = lowest8.reduce((s, r) => s + Number(r.scoreDiff), 0) / lowest8.length;
+    return {
+      liveAllHC: { hc: avg, date: lowest8[0].date },
+      allCounting8Rounds: lowest8
+    };
+  }, [data]);
+
+  const filteredRounds = useMemo(() => {
+    let rows = allRounds;
+    if (filterMethod === "englandGolf") {
+      rows = rows.filter(r => r.method === "englandGolf");
+    } else {
+      // allPlayed: show all rounds but deduplicate (same round may appear in EG + allPlayed)
+      const seen = new Set();
+      rows = rows.filter(r => {
+        const key = (r.date||'') + '|' + String(r.course||'').trim().toLowerCase() + '|' + (r.score||'');
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+    if (filterCourse) rows = rows.filter(r => r.course && r.course.trim().toLowerCase().includes(filterCourse.toLowerCase()));
+    if (search) {
+      const q = search.toLowerCase();
+      rows = rows.filter(r => (r.course || "").toLowerCase().includes(q) || (r.date || "").includes(q) || (r.tee || "").toLowerCase().includes(q));
+    }
+    rows.sort((a, b) => {
+      let av = a[sortField], bv = b[sortField];
+      if (typeof av === "string") av = av.toLowerCase();
+      if (typeof bv === "string") bv = bv.toLowerCase();
+      if (av == null) return 1; if (bv == null) return -1;
+      return sortDir === "asc" ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+    });
+    return rows;
+  }, [allRounds, filterMethod, filterCourse, search, sortField, sortDir]);
+
+  const handleSort = (field) => {
+    if (sortField === field) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortField(field); setSortDir("desc"); }
+  };
+
+  const handleSave = (round, method, origIdx) => {
+    const key = method;
+    const newData = { ...data };
+    const isEdit = origIdx != null;
+    if (isEdit) {
+      // Replace the record at its original index in the correct method array
+      const arr = [...(newData[key] || [])];
+      const cleanRound = { ...round };
+      delete cleanRound.method;
+      delete cleanRound._origIdx;
+      arr[origIdx] = cleanRound;
+      newData[key] = arr;
+    } else {
+      const cleanRound = { ...round };
+      delete cleanRound.method;
+      delete cleanRound._origIdx;
+      cleanRound.id = Date.now().toString();
+      cleanRound.source = method === "englandGolf" ? "england_golf" : method === "nonCounted" ? "non_counted" : "all_played";
+      newData[key] = [cleanRound, ...(newData[key] || [])];
+    }
+    setData(newData);
+    setEditRound(null);
+    setFilterMethod("allPlayed");
+    setSearch("");
+    setFilterCourse("");
+    setSortField("date");
+    setSortDir("desc");
+    setTab("rounds");
+    notify(isEdit ? "Round updated" : "Round added");
+  };
+
+  const handleDelete = (round) => {
+    if (!confirm(`Delete this round at ${round.course} on ${round.date}?`)) return;
+    const key = round.method;
+    const newData = { ...data, [key]: (data[key] || []).filter(r => (r.id || r.date + r.course) !== (round.id || round.date + round.course)) };
+    setData(newData);
+    notify("Round deleted", "danger");
+  };
+
+  const handleExport = () => {
+    const rows = [["Method", "Date", "Course", "Tee", "Score", "Score Diff", "Handicap / New HC", "To HC"]];
+    allRounds.forEach(r => rows.push([METHOD_META[r.method]?.label, r.date, r.course, r.tee, r.score, fmt(r.scoreDiff, 2), fmt(r.newHC || r.potentialHC, 2), r.toHC ?? ""]));
+    const csv = rows.map(r => r.map(c => `"${c}"`).join(",")).join("\n");
+    const a = document.createElement("a"); a.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+    a.download = "handicap_rounds.csv"; a.click();
+    notify("Exported CSV");
+  };
+
+  return (
+    <div style={{ fontFamily: "system-ui, sans-serif", minHeight: "100vh", background: "var(--color-background-tertiary, #f5f5f0)", color: "var(--color-text-primary)" }}>
+      {notification && (
+        <div style={{ position: "fixed", top: 16, right: 16, zIndex: 999, background: notification.type === "danger" ? "#fde8e8" : "#e6f4ea", color: notification.type === "danger" ? "#991b1b" : "#14532d", padding: "10px 18px", borderRadius: 8, border: `0.5px solid ${notification.type === "danger" ? "#fca5a5" : "#86efac"}`, fontSize: 14, fontWeight: 500, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}>
+          {notification.msg}
+        </div>
+      )}
+      <div style={{ background: "#0a1628", color: "#fff", padding: "12px 24px", display: "flex", alignItems: "center", gap: 12 }}>
+        <i className="ti ti-golf" style={{ fontSize: 22, color: "#60a5fa" }} aria-hidden="true"></i>
+        <span style={{ fontWeight: 500, fontSize: 18, letterSpacing: "-0.02em" }}>Handicap Tracker</span>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+          <button onClick={handleExport} style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "0.5px solid rgba(255,255,255,0.2)", borderRadius: 6, padding: "6px 12px", cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+            <i className="ti ti-download" aria-hidden="true"></i> Export CSV
+          </button>
+          <button onClick={() => { if(confirm('Clear all manually added rounds and reset to spreadsheet data?')) { localStorage.removeItem('golf_manual_rounds_v1'); window.location.reload(); } }} style={{ background: "rgba(255,255,255,0.08)", color: "#f87171", border: "0.5px solid rgba(248,113,113,0.4)", borderRadius: 6, padding: "6px 12px", cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+            <i className="ti ti-refresh" aria-hidden="true"></i> Reset data
+          </button>
+        </div>
+      </div>
+      <div style={{ display: "flex", borderBottom: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-primary)", padding: "0 16px" }}>
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => { setTab(t.id); if (t.id === "add") setEditRound(null); }} style={{ background: "none", border: "none", borderBottom: tab === t.id ? "2px solid #185FA5" : "2px solid transparent", color: tab === t.id ? "#185FA5" : "var(--color-text-secondary)", padding: "12px 16px", cursor: "pointer", fontWeight: tab === t.id ? 500 : 400, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
+            <i className={`ti ${t.icon}`} aria-hidden="true"></i> {t.label}
+          </button>
+        ))}
+      </div>
+      <div style={{ padding: "20px 24px", maxWidth: 1200, margin: "0 auto" }}>
+        {tab === "dashboard" && <Dashboard data={data} allRounds={allRounds} countingSet={countingSet} liveEgHC={liveEgHC} liveAllHC={liveAllHC} allCounting8Rounds={allCounting8Rounds} onAddRound={() => setTab("add")} />}
+        {tab === "rounds" && (
+          <RoundsTable rounds={filteredRounds} countingSet={countingSet} courseDB={courseDB} egHCByDate={egHCByDate} search={search} setSearch={setSearch} filterCourse={filterCourse} setFilterCourse={setFilterCourse} filterMethod={filterMethod} setFilterMethod={setFilterMethod} sortField={sortField} sortDir={sortDir} onSort={handleSort} onEdit={r => { setEditRound(r); setTab("add"); }} onDelete={handleDelete} />
+        )}
+        {tab === "add" && <AddEditRound round={editRound} origIdx={editRound?._origIdx} onSave={handleSave} onCancel={() => setTab("rounds")} courseDB={courseDB} setCourseDB={setCourseDB} liveEgHC={liveEgHC} />}
+        {tab === "coursesplayed" && <CoursesPlayedTab data={data} visited={visited} setVisited={setVisited} />}
+        {tab === "courses" && <CoursesTab courseDB={courseDB} setCourseDB={setCourseDB} />}
+        {tab === "compare" && <CompareTab data={data} liveEgHC={liveEgHC} liveAllHC={liveAllHC} />}
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, sub, color }) {
+  return (
+    <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 12, padding: "16px 20px", borderLeft: `3px solid ${color || "#185FA5"}` }}>
+      <div style={{ fontSize: 12, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 26, fontWeight: 500, color: color || "var(--color-text-primary)" }}>{value}</div>
+      {sub && <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>{sub}</div>}
+    </div>
+  );
+}
+
+function Dashboard({ data, allRounds, countingSet, liveEgHC, liveAllHC, allCounting8Rounds, onAddRound }) {
+  const eg = data.englandGolf || [];
+  const nc = data.nonCounted || [];
+  const ap = data.allPlayed || [];
+
+  const latestEG = eg.find(r => r.newHC != null);
+  const latestAP = ap.find(r => r.potentialHC != null);
+  const totalRounds = allRounds.length;
+  const egRounds = eg.length;
+  const allCourses = new Set(allRounds.map(r => r.course).filter(Boolean));
+
+  const recentEG = eg.filter(r => r.newHC != null).slice(0, 20).reverse();
+  const recentAP = ap.filter(r => r.potentialHC != null).slice(0, 20).reverse();
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 500 }}>Overview</h2>
+        <button onClick={onAddRound} style={{ background: "#185FA5", color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", cursor: "pointer", fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
+          <i className="ti ti-plus" aria-hidden="true"></i> Add Round
+        </button>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12, marginBottom: 24 }}>
+        <StatCard label="Current HC (England Golf)" value={liveEgHC ? fmt(liveEgHC.hc) : (latestEG ? fmt(latestEG.newHC) : "—")} sub={liveEgHC ? liveEgHC.date + " (calculated)" : latestEG?.date} color="#185FA5" />
+        <StatCard label="Potential HC (all played)" value={liveAllHC ? fmt(liveAllHC.hc) : (latestAP ? fmt(latestAP.potentialHC) : "—")} sub={liveAllHC ? liveAllHC.date + " (calculated)" : latestAP?.date} color="#0F6E56" />
+        <StatCard label="Total rounds logged" value={totalRounds} sub={`${egRounds} official`} color="#533AB7" />
+        <StatCard label="Courses played" value={allCourses.size} color="#993C1D" />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+        <MiniChart title="England Golf HC trend" points={recentEG} yKey="newHC" color="#185FA5" bg="#E6F1FB" />
+        <MiniChart title="Potential HC trend (all played)" points={recentAP} yKey="potentialHC" color="#0F6E56" bg="#E1F5EE" />
+      </div>
+      <CountingRoundsPanel data={data} countingSet={countingSet} allCounting8Rounds={allCounting8Rounds} allAvg={liveAllHC ? liveAllHC.hc : null} />
+      <RecentRounds rounds={allRounds} countingSet={countingSet} />
+    </div>
+  );
+}
+
+function MiniChart({ title, points, yKey, color, bg }) {
+  if (!points.length) return null;
+  const vals = points.map(p => Number(p[yKey])).filter(v => !isNaN(v));
+  if (!vals.length) return null;
+  const min = Math.min(...vals) - 0.5, max = Math.max(...vals) + 0.5, range = max - min || 1;
+  const W = 340, H = 100, PAD = 8;
+  const x = i => PAD + (i / (points.length - 1 || 1)) * (W - PAD * 2);
+  const y = v => PAD + (1 - (v - min) / range) * (H - PAD * 2);
+  const pts = points.map((p, i) => `${x(i)},${y(Number(p[yKey]))}`).join(" ");
+  const polyFill = pts + ` ${x(points.length - 1)},${H - PAD} ${PAD},${H - PAD}`;
+  return (
+    <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 12, padding: "16px" }}>
+      <div style={{ fontSize: 13, fontWeight: 500, color: "var(--color-text-secondary)", marginBottom: 8 }}>{title}</div>
+      <div style={{ fontSize: 22, fontWeight: 500, color, marginBottom: 8 }}>{fmt(vals[vals.length - 1])}</div>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: H }}>
+        <polygon points={polyFill} fill={bg} opacity="0.7" />
+        <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+        <circle cx={x(points.length - 1)} cy={y(vals[vals.length - 1])} r="4" fill={color} />
+      </svg>
+    </div>
+  );
+}
+
+
+function CountingRoundsPanel({ data, countingSet, allCounting8Rounds, allAvg }) {
+  // EG counting: lowest 8 diffs from last 20 England Golf rounds
+  const egAll = (data.englandGolf || [])
+    .map((r, idx) => ({ ...r, _origIdx: idx }))
+    .filter(r => r.scoreDiff != null && r.date)
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const last20eg = egAll.slice(0, 20);
+  const egCounting8 = [...last20eg]
+    .filter(r => countingSet.has(r._origIdx))
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const egAvg = egCounting8.length ? egCounting8.reduce((s, r) => s + Number(r.scoreDiff), 0) / egCounting8.length : null;
+
+  // All counting: use pre-computed rounds passed from App() — single source of truth
+  const allCounting8 = allCounting8Rounds || [];
+
+  const RoundCard = ({ r, color, bg, border }) => (
+    <div style={{ background: bg, border: `0.5px solid ${border}`, borderRadius: 8, padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div>
+        <div style={{ fontSize: 12, fontWeight: 500, color }}>{r.course}</div>
+        <div style={{ fontSize: 11, color, opacity: 0.75 }}>{fmtDate(r.date)} · {r.tee}</div>
+      </div>
+      <div style={{ fontSize: 16, fontWeight: 500, color }}>{Number(r.scoreDiff).toFixed(1)}</div>
+    </div>
+  );
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+
+      {/* EG Counting */}
+      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid #185FA5", borderRadius: 12, padding: "16px 20px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <div style={{ fontSize: 14, fontWeight: 500, color: "#185FA5" }}>EG Counting</div>
+          {egAvg != null && (
+            <div style={{ fontSize: 12, color: "#185FA5", fontWeight: 500, textAlign: "right" }}>
+              Avg: {egAvg.toFixed(2)}<br/>
+              <span style={{ fontSize: 13 }}>HC = {egAvg.toFixed(1)}</span>
+            </div>
+          )}
+        </div>
+        <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 8 }}>Lowest 8 diffs from last 20 EG rounds</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {egCounting8.map((r, i) => (
+            <RoundCard key={i} r={r} color="#0c447c" bg="#f0f6ff" border="#b5d4f4" />
+          ))}
+          {egCounting8.length === 0 && (
+            <div style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>No England Golf rounds found.</div>
+          )}
+        </div>
+      </div>
+
+      {/* All Counting */}
+      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid #0F6E56", borderRadius: 12, padding: "16px 20px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <div style={{ fontSize: 14, fontWeight: 500, color: "#0F6E56" }}>All Counting</div>
+          {allAvg != null && (
+            <div style={{ fontSize: 12, color: "#0F6E56", fontWeight: 500, textAlign: "right" }}>
+              Avg: {allAvg.toFixed(2)}<br/>
+              <span style={{ fontSize: 13 }}>HC = {allAvg.toFixed(1)}</span>
+            </div>
+          )}
+        </div>
+        <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 8 }}>Lowest 8 score differences ever recorded</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {allCounting8.map((r, i) => (
+            <RoundCard key={i} r={r} color="#085041" bg="#e1f5ee" border="#9fe1cb" />
+          ))}
+          {allCounting8.length === 0 && (
+            <div style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>No rounds found.</div>
+          )}
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+function RecentRounds({ rounds, countingSet }) {
+  const [view, setView] = useState('allPlayed');
+  const filters = [
+    { key: 'allPlayed', label: 'All Rounds Played' },
+    { key: 'englandGolf', label: 'England Golf' },
+  ];
+  const filtered = view === 'allPlayed'
+    ? (() => { const seen = new Set(); return rounds.filter(r => { const k=(r.date||'')+'|'+String(r.course||'').toLowerCase()+'|'+(r.score||''); if(seen.has(k)) return false; seen.add(k); return true; }); })()
+    : rounds.filter(r => r.method === view);
+  const shown = filtered.slice(0, 20);
+
+  return (
+    <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 12, padding: "16px 20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+        <div style={{ fontSize: 14, fontWeight: 500 }}>Recent activity</div>
+        <div style={{ display: "flex", gap: 4 }}>
+          {filters.map(f => (
+            <button key={f.key} onClick={() => setView(f.key)} style={{
+              background: view === f.key ? METHOD_META[f.key]?.bg || "#0a1628" : "transparent",
+              color: view === f.key ? METHOD_META[f.key]?.color || "#fff" : "var(--color-text-secondary)",
+              border: view === f.key ? `1px solid ${METHOD_META[f.key]?.color || "#0a1628"}` : "0.5px solid var(--color-border-tertiary)",
+              borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12, fontWeight: view === f.key ? 500 : 400,
+              whiteSpace: "nowrap"
+            }}>{f.label}</button>
+          ))}
+        </div>
+      </div>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+        <thead>
+          <tr style={{ color: "var(--color-text-secondary)", borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
+            <th style={{ textAlign: "left", padding: "4px 8px", fontWeight: 400 }}>Date</th>
+            <th style={{ textAlign: "left", padding: "4px 8px", fontWeight: 400 }}>Course</th>
+            <th style={{ textAlign: "left", padding: "4px 8px", fontWeight: 400 }}>Tee</th>
+            <th style={{ textAlign: "right", padding: "4px 8px", fontWeight: 400 }}>Score</th>
+            <th style={{ textAlign: "right", padding: "4px 8px", fontWeight: 400 }}>Diff</th>
+            {view !== 'englandGolf' && view !== 'nonCounted' && view !== 'allPlayed' && (
+              <th style={{ textAlign: "left", padding: "4px 8px", fontWeight: 400 }}>Type</th>
+            )}
+            <th style={{ textAlign: "left", padding: "4px 8px", fontWeight: 400 }}>Counting</th>
+          </tr>
+        </thead>
+        <tbody>
+          {shown.map((r, i) => (
+            <tr key={i} style={{ borderBottom: "0.5px solid var(--color-border-tertiary)", background: r.method === "englandGolf" && countingSet && countingSet.has(r._origIdx) ? "#f0f6ff" : "transparent" }}>
+              <td style={{ padding: "6px 8px" }}>{fmtDate(r.date)}</td>
+              <td style={{ padding: "6px 8px", fontWeight: 500 }}>{r.course}</td>
+              <td style={{ padding: "6px 8px" }}>
+                <span style={{ background: teeColor(r.tee), color: "#fff", borderRadius: 4, padding: "1px 7px", fontSize: 11 }}>{r.tee}</span>
+              </td>
+              <td style={{ padding: "6px 8px", textAlign: "right" }}>{r.score}</td>
+              <td style={{ padding: "6px 8px", textAlign: "right" }}>{fmt(r.scoreDiff, 1)}</td>
+              {/* Type cell hidden - always filtering by a single method */}
+              <td style={{ padding: "6px 8px" }}>
+                {r.method === "englandGolf" && countingSet && countingSet.has(r._origIdx) && (
+                  <span style={{ background: "#185FA5", color: "#fff", borderRadius: 4, padding: "1px 7px", fontSize: 11, fontWeight: 500 }}>✓ counting</span>
+                )}
+              </td>
+            </tr>
+          ))}
+          {shown.length === 0 && (
+            <tr><td colSpan={7} style={{ padding: "16px 8px", textAlign: "center", color: "var(--color-text-secondary)", fontSize: 13 }}>No rounds found</td></tr>
+          )}
+        </tbody>
+      </table>
+      {filtered.length > 20 && (
+        <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 10 }}>Showing 20 of {filtered.length} rounds — use the All Rounds tab to see more</div>
+      )}
+    </div>
+  );
+}
+
+function calcShotsToHC(r, courseDB, egHCByDate) {
+  if (!courseDB || !r.score || !r.course || !r.tee) return null;
+  const match = (courseDB || []).find(c =>
+    c.course.toLowerCase().trim() === String(r.course).toLowerCase().trim() &&
+    c.tee.toLowerCase().trim() === String(r.tee).toLowerCase().trim()
+  );
+  if (!match) return null;
+  // Use stored newHC for EG rounds, otherwise find nearest EG HC at time of round
+  let hcIndex = r.newHC != null ? Number(r.newHC) : null;
+  if (!hcIndex && egHCByDate && r.date) {
+    // Find the most recent EG HC on or before this round's date
+    const entries = egHCByDate.filter(e => e.date <= r.date);
+    if (entries.length) hcIndex = entries[entries.length - 1].hc;
+  }
+  if (!hcIndex) return null;
+  const courseHC = Math.round(hcIndex * (match.slope / 113) + (match.rating - match.par));
+  return { shots: Number(r.score) - match.par - courseHC, courseHC, par: match.par };
+}
+
+
+function RoundsTable({ rounds, countingSet, search, setSearch, filterCourse, setFilterCourse, filterMethod, setFilterMethod, sortField, sortDir, onSort, onEdit, onDelete, courseDB, egHCByDate }) {
+  const SortIcon = ({ field }) => sortField === field ? (sortDir === "asc" ? " ↑" : " ↓") : "";
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+        <div style={{ position: "relative", flex: "1 1 200px" }}>
+          <i className="ti ti-search" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--color-text-secondary)", fontSize: 15 }} aria-hidden="true"></i>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search course, date, tee…" style={{ width: "100%", paddingLeft: 32, boxSizing: "border-box" }} />
+        </div>
+        <select value={filterMethod} onChange={e => setFilterMethod(e.target.value)} style={{ flex: "0 0 180px" }}>
+          <option value="allPlayed">All Rounds Played</option>
+          <option value="englandGolf">England Golf only</option>
+        </select>
+        <input value={filterCourse} onChange={e => setFilterCourse(e.target.value)} placeholder="Filter by course…" style={{ flex: "1 1 160px" }} />
+        <span style={{ fontSize: 13, color: "var(--color-text-secondary)", alignSelf: "center" }}>{rounds.length} rounds</span>
+      </div>
+      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 700 }}>
+            <thead style={{ background: "var(--color-background-secondary)" }}>
+              <tr>
+                {[["date","Date"],["course","Course"],["tee","Tee"],["score","Score"],["scoreDiff","Diff"],["newHC","HC / Potential"],["method","Type"],["shots","Shots to HC"]].map(([f, l]) => (
+                  <th key={f} onClick={() => onSort(f)} style={{ padding: "10px 12px", textAlign: f === "score" || f === "scoreDiff" || f === "newHC" ? "right" : "left", fontWeight: 500, cursor: "pointer", userSelect: "none", fontSize: 12, color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>
+                    {l}<SortIcon field={f} />
+                  </th>
+                ))}
+                <th style={{ padding: "10px 12px", fontWeight: 500, fontSize: 12, color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>Counting</th>
+                <th style={{ padding: "10px 12px" }}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {rounds.slice(0, 200).map((r, i) => (
+                <tr key={i} style={{ borderTop: "0.5px solid var(--color-border-tertiary)", background: r.method === "englandGolf" && countingSet.has(r._origIdx) ? "#f0f6ff" : "transparent" }}>
+                  <td style={{ padding: "8px 12px", whiteSpace: "nowrap" }}>{fmtDate(r.date)}</td>
+                  <td style={{ padding: "8px 12px", fontWeight: 500 }}>{r.course}</td>
+                  <td style={{ padding: "8px 12px" }}>
+                    <span style={{ background: teeColor(r.tee), color: "#fff", borderRadius: 4, padding: "2px 8px", fontSize: 11 }}>{r.tee}</span>
+                  </td>
+                  <td style={{ padding: "8px 12px", textAlign: "right" }}>{r.score}</td>
+                  <td style={{ padding: "8px 12px", textAlign: "right" }}>{fmt(r.scoreDiff, 1)}</td>
+                  <td style={{ padding: "8px 12px", textAlign: "right" }}>{fmt(r.newHC ?? r.potentialHC, 1)}</td>
+                  <td style={{ padding: "8px 12px" }}>
+                    <span style={{ background: METHOD_META[r.method]?.bg, color: METHOD_META[r.method]?.color, borderRadius: 4, padding: "2px 8px", fontSize: 11, whiteSpace: "nowrap" }}>{METHOD_META[r.method]?.label}</span>
+                  </td>
+                  <td style={{ padding: "8px 12px", textAlign: "center" }}>
+                    {(() => {
+                      const s = calcShotsToHC(r, courseDB, egHCByDate);
+                      if (!s) return <span style={{ color: "var(--color-text-secondary)", fontSize: 12 }}>—</span>;
+                      return <span style={{ fontWeight: 500, fontSize: 13, color: s.shots <= 0 ? "#0F6E56" : "#993C1D" }}>{s.shots > 0 ? "+" : ""}{s.shots}</span>;
+                    })()}
+                  </td>
+                  <td style={{ padding: "8px 12px", textAlign: "center" }}>
+                    {r.method === "englandGolf" && countingSet.has(r._origIdx) && (
+                      <span title="Counting round (one of 8 lowest diffs in last 20)" style={{ background: "#185FA5", color: "#fff", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 500 }}>✓ counting</span>
+                    )}
+                    {r.method === "englandGolf" && !countingSet.has(r._origIdx) && (
+                      <span style={{ color: "var(--color-text-secondary)", fontSize: 11 }}>—</span>
+                    )}
+                  </td>
+                  <td style={{ padding: "8px 12px", whiteSpace: "nowrap" }}>
+                    <button onClick={() => onEdit(r)} style={{ background: "none", border: "0.5px solid #ccc", borderRadius: 4, cursor: "pointer", color: "var(--color-text-secondary)", padding: "3px 8px", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 3 }} title="Edit round"><i className="ti ti-edit" aria-hidden="true"></i> Edit</button>
+                    <button onClick={() => onDelete(r)} style={{ background: "none", border: "none", cursor: "pointer", color: "#c62828", padding: "2px 6px" }} title="Delete"><i className="ti ti-trash" aria-hidden="true"></i></button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {rounds.length > 200 && <div style={{ padding: "12px 16px", fontSize: 12, color: "var(--color-text-secondary)", borderTop: "0.5px solid var(--color-border-tertiary)" }}>Showing 200 of {rounds.length} — use filters to narrow</div>}
+      </div>
+    </div>
+  );
+}
+
+function AddEditRound({ round, onSave, onCancel, origIdx, courseDB, setCourseDB, liveEgHC }) {
+  const isEdit = !!round;
+  const [method, setMethod] = useState(round?.method || "englandGolf");
+  const [form, setForm] = useState({
+    date: round?.date || new Date().toISOString().slice(0, 10),
+    course: round?.course || "",
+    tee: round?.tee || "",
+    score: round?.score != null ? String(round.score) : "",
+    scoreDiff: round?.scoreDiff != null ? Number(round.scoreDiff).toFixed(2) : "",
+    newHC: round?.newHC != null ? Number(round.newHC).toFixed(1) : "",
+    potentialHC: round?.potentialHC != null ? Number(round.potentialHC).toFixed(1) : "",
+    toHC: round?.toHC || "",
+    id: round?.id || null,
+  });
+  const [calc, setCalc] = useState({ courseRating: "", slope: "", par: "" });
+  const [showCalc, setShowCalc] = useState(false);
+
+  // Auto-fill calc when course+tee match a known entry, and open the panel
+  useEffect(() => {
+    if (!courseDB) return;
+    const match = lookupCourse(courseDB, form.course, form.tee);
+    if (match) {
+      setCalc({ courseRating: String(match.rating), slope: String(match.slope), par: String(match.par) });
+      setShowCalc(true);
+    } else {
+      setShowCalc(false);
+    }
+  }, [form.course, form.tee, courseDB]);
+  const setC = (k, v) => setCalc(c => ({ ...c, [k]: v }));
+
+  const computeDiff = () => {
+    const score = Number(form.score);
+    const cr = Number(calc.courseRating);
+    const slope = Number(calc.slope);
+    const par = Number(calc.par);
+    if (!score || !cr || !slope || !par) { alert("Enter score, course rating, slope and par to calculate."); return; }
+    // WHS Score Differential formula: (113 / Slope) × (Adjusted Gross Score − Course Rating − PCC adjustment)
+    // Simplified (no PCC): (Adjusted Gross Score − Course Rating) × (113 / Slope)
+    const diff = (score - cr) * (113 / slope);
+    const rounded = Math.round(diff * 10) / 10;
+    setForm(f => ({ ...f, scoreDiff: rounded.toFixed(2) }));
+    setShowCalc(false);
+  };
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleSubmit = () => {
+    if (!form.date || !form.course || !form.score) { alert("Date, course and score are required."); return; }
+    if (!form.scoreDiff) { alert("Score differential is required. Use the calculator if needed."); return; }
+    const r = { ...form, score: Number(form.score), scoreDiff: Number(form.scoreDiff) };
+    if (method === "englandGolf") r.newHC = form.newHC ? Number(form.newHC) : null;
+    if (method === "allPlayed") r.potentialHC = form.potentialHC ? Number(form.potentialHC) : null;
+    onSave(r, method, origIdx);
+  };
+
+  const Field = ({ label, children }) => (
+    <div style={{ marginBottom: 16 }}>
+      <label style={{ display: "block", fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 4 }}>{label}</label>
+      {children}
+    </div>
+  );
+
+  return (
+    <div style={{ maxWidth: 600 }}>
+      <h2 style={{ fontSize: 18, fontWeight: 500, marginBottom: 20 }}>{isEdit ? "Edit round" : "Add new round"}</h2>
+      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 12, padding: "24px" }}>
+
+        <Field label="Type">
+          <select value={method} onChange={e => setMethod(e.target.value)} disabled={isEdit} style={{ width: "100%", opacity: isEdit ? 0.6 : 1 }}>
+            <option value="englandGolf">England Golf (counted)</option>
+            <option value="nonCounted">Non-counted</option>
+            <option value="allPlayed">All Played (potential)</option>
+          </select>
+          {isEdit && <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 4 }}>Type cannot be changed when editing</div>}
+        </Field>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <Field label="Date">
+            <input type="date" value={form.date} onChange={e => set("date", e.target.value)} style={{ width: "100%", boxSizing: "border-box" }} />
+          </Field>
+          <Field label="Gross score">
+            <input type="text" inputMode="numeric" value={form.score} onChange={e => { const v = e.target.value.replace(/\D/g,""); set("score", v); }} placeholder="e.g. 104" style={{ width: "100%", boxSizing: "border-box" }} />
+          </Field>
+        </div>
+
+        <Field label="Course">
+          <input list="course-list" value={form.course} onChange={e => set("course", e.target.value)} placeholder="e.g. Royal Norwich" style={{ width: "100%", boxSizing: "border-box" }} />
+          <datalist id="course-list">{COURSES.map(c => <option key={c} value={c} />)}</datalist>
+        </Field>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <Field label="Tee">
+            <input list="tee-list" value={form.tee} onChange={e => set("tee", e.target.value)} placeholder="e.g. Black" style={{ width: "100%", boxSizing: "border-box" }} />
+            <datalist id="tee-list">{["Black","Blue","Red","Silver","Bronze","Orange","Yellow","Green","Gold","White"].map(t => <option key={t} value={t} />)}</datalist>
+          </Field>
+          <Field label="Score differential">
+            <div style={{ display: "flex", gap: 6 }}>
+              <input type="number" step="0.01" value={form.scoreDiff} onChange={e => set("scoreDiff", e.target.value)} placeholder="e.g. 24.79" style={{ flex: 1, boxSizing: "border-box" }} />
+              <button type="button" onClick={() => setShowCalc(s => !s)} title="Calculate differential" style={{ background: showCalc ? "#185FA5" : "var(--color-background-secondary)", color: showCalc ? "#fff" : "var(--color-text-secondary)", border: "0.5px solid var(--color-border-secondary)", borderRadius: 6, padding: "0 10px", cursor: "pointer", fontSize: 13, whiteSpace: "nowrap" }}>
+                <i className="ti ti-calculator" aria-hidden="true"></i>
+              </button>
+            </div>
+          </Field>
+        </div>
+
+        {showCalc && (
+          <div style={{ background: "#f0f6ff", border: "0.5px solid #b5d4f4", borderRadius: 10, padding: "16px", marginBottom: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: "#0c447c" }}>Score differential calculator</div>
+              {courseDB && lookupCourse(courseDB, form.course, form.tee) && (
+                <span style={{ fontSize: 11, background: "#185FA5", color: "#fff", borderRadius: 4, padding: "2px 8px" }}>
+                  Auto-filled from course database
+                </span>
+              )}
+            </div>
+            <div style={{ fontSize: 12, color: "#378add", marginBottom: 12 }}>
+              Formula: (Gross Score − Course Rating) × (113 ÷ Slope)
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
+              <div>
+                <label style={{ display: "block", fontSize: 12, color: "#378add", marginBottom: 3 }}>Course rating</label>
+                <input type="number" step="0.1" value={calc.courseRating} onChange={e => setC("courseRating", e.target.value)} placeholder="e.g. 71.2" style={{ width: "100%", boxSizing: "border-box" }} />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: 12, color: "#378add", marginBottom: 3 }}>Slope rating</label>
+                <input type="number" value={calc.slope} onChange={e => setC("slope", e.target.value)} placeholder="e.g. 128" style={{ width: "100%", boxSizing: "border-box" }} />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: 12, color: "#378add", marginBottom: 3 }}>Par</label>
+                <input type="number" value={calc.par} onChange={e => setC("par", e.target.value)} placeholder="e.g. 72" style={{ width: "100%", boxSizing: "border-box" }} />
+              </div>
+            </div>
+            {form.score && calc.courseRating && calc.slope && (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                <div style={{ fontSize: 13, color: "#0c447c", fontWeight: 500 }}>
+                  Differential: {((Number(form.score) - Number(calc.courseRating)) * (113 / Number(calc.slope))).toFixed(2)}
+                </div>
+                <button type="button" onClick={computeDiff} style={{ background: "#185FA5", color: "#fff", border: "none", borderRadius: 6, padding: "5px 12px", cursor: "pointer", fontSize: 12, fontWeight: 500 }}>
+                  Apply ↓
+                </button>
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {courseDB && form.course && form.tee && calc.courseRating && calc.slope && calc.par && !lookupCourse(courseDB, form.course, form.tee) && (
+                <button type="button" onClick={() => {
+                  const newEntry = { course: form.course.trim(), tee: form.tee.trim(), rating: Number(calc.courseRating), slope: Number(calc.slope), par: Number(calc.par) };
+                  setCourseDB(db => [...db, newEntry]);
+                  setShowCalc(false);
+                  alert(`Saved: ${form.course} (${form.tee}) to course database`);
+                }} style={{ background: "#0F6E56", color: "#fff", border: "none", borderRadius: 6, padding: "7px 16px", cursor: "pointer", fontSize: 13, fontWeight: 500 }}>
+                  Save to course database
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {method === "englandGolf" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <Field label="New handicap after round">
+                <input type="number" step="0.1" value={form.newHC} onChange={e => set("newHC", e.target.value)}
+                  placeholder={liveEgHC ? String(liveEgHC.hc.toFixed(1)) : "e.g. 23.1"}
+                  style={{ width: "100%", boxSizing: "border-box" }} />
+                {!form.newHC && liveEgHC && (
+                  <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 3 }}>
+                    Current HC is {liveEgHC.hc.toFixed(1)} — enter new HC after this round
+                  </div>
+                )}
+              </Field>
+              <div></div>
+            </div>
+            <Field label="Shots to HC">
+              {(() => {
+                const cr = Number(calc.courseRating);
+                const slope = Number(calc.slope);
+                const par = Number(calc.par);
+                const score = Number(form.score);
+                const hcIndex = form.newHC ? Number(form.newHC) : (liveEgHC ? liveEgHC.hc : 0);
+                if (cr && slope && par && score && hcIndex) {
+                  const courseHC = Math.round(hcIndex * (slope / 113) + (cr - par));
+                  const shotsToHC = score - par - courseHC;
+                  return (
+                    <div style={{ padding: "12px 14px", background: shotsToHC <= 0 ? "#e1f5ee" : "#faece7", borderRadius: 8, border: "0.5px solid " + (shotsToHC <= 0 ? "#9fe1cb" : "#f5c4b5") }}>
+                      <div style={{ fontSize: 22, fontWeight: 600, color: shotsToHC <= 0 ? "#0F6E56" : "#993C1D", marginBottom: 4 }}>
+                        {shotsToHC > 0 ? "+" : ""}{shotsToHC} shots
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--color-text-secondary)", display: "flex", gap: 12, flexWrap: "wrap" }}>
+                        <span>Course HC: <strong>{courseHC}</strong></span>
+                        <span>Par: <strong>{par}</strong></span>
+                        <span>Score: <strong>{score}</strong></span>
+                        <span>HC Index: <strong>{hcIndex.toFixed(1)}</strong></span>
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div style={{ padding: "12px 14px", background: "var(--color-background-secondary)", borderRadius: 8, border: "0.5px solid var(--color-border-tertiary)", fontSize: 13, color: "var(--color-text-secondary)" }}>
+                    Fill in score and course details — Shots to HC will calculate automatically
+                  </div>
+                );
+              })()}
+            </Field>
+          </div>
+        )}
+        {method === "allPlayed" && (
+          <Field label="Potential handicap">
+            <input type="number" step="0.1" value={form.potentialHC} onChange={e => set("potentialHC", e.target.value)} placeholder="e.g. 20.6" style={{ width: "100%", boxSizing: "border-box" }} />
+          </Field>
+        )}
+
+        <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+          <button onClick={handleSubmit} style={{ background: "#185FA5", color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontWeight: 500, fontSize: 14 }}>
+            {isEdit ? "Save changes" : "Add round"}
+          </button>
+          <button onClick={onCancel} style={{ background: "none", border: "0.5px solid var(--color-border-secondary)", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontSize: 14 }}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CoursesPlayedTab({ data, visited, setVisited }) {
+  const [sortField, setSortField] = useState('count');
+  const [sortDir, setSortDir] = useState('desc');
+  const [search, setSearch] = useState('');
+  const [showAdd, setShowAdd] = useState(false);
+  const [newVisit, setNewVisit] = useState({ course: '', date: '', notes: '' });
+
+  // Build stats from allPlayed (recorded rounds)
+  const recordedStats = useMemo(() => {
+    const stats = {};
+    (data.allPlayed || []).forEach(r => {
+      const course = String(r.course || '').trim();
+      if (!course || course === 'nan') return;
+      if (!stats[course]) stats[course] = { course, count: 0, diffs: [], dates: [], type: 'recorded' };
+      stats[course].count++;
+      if (r.scoreDiff != null) stats[course].diffs.push(Number(r.scoreDiff));
+      if (r.date) stats[course].dates.push(r.date);
+    });
+    return stats;
+  }, [data]);
+
+  // Merge visited-only courses
+  const allCourses = useMemo(() => {
+    const result = { ...recordedStats };
+    (visited || []).forEach(v => {
+      const course = v.course.trim();
+      if (!result[course]) {
+        result[course] = { course, count: 0, diffs: [], dates: v.date ? [v.date] : [], type: 'visited', notes: v.notes };
+      } else {
+        if (v.notes) result[course].notes = v.notes;
+      }
+    });
+    return Object.values(result);
+  }, [recordedStats, visited]);
+
+  const filtered = useMemo(() => {
+    let rows = allCourses;
+    if (search) rows = rows.filter(r => r.course.toLowerCase().includes(search.toLowerCase()));
+    rows.sort((a, b) => {
+      let av, bv;
+      if (sortField === 'course') { av = a.course.toLowerCase(); bv = b.course.toLowerCase(); }
+      else if (sortField === 'count') { av = a.count; bv = b.count; }
+      else if (sortField === 'avgDiff') { av = a.diffs.length ? a.diffs.reduce((s,d)=>s+d,0)/a.diffs.length : 999; bv = b.diffs.length ? b.diffs.reduce((s,d)=>s+d,0)/b.diffs.length : 999; }
+      else if (sortField === 'bestDiff') { av = a.diffs.length ? Math.min(...a.diffs) : 999; bv = b.diffs.length ? Math.min(...b.diffs) : 999; }
+      else if (sortField === 'lastPlayed') { av = a.dates.length ? Math.max(...a.dates) : ''; bv = b.dates.length ? Math.max(...b.dates) : ''; }
+      else { av = a.course.toLowerCase(); bv = b.course.toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }, [allCourses, search, sortField, sortDir]);
+
+  const handleSort = (field) => {
+    if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortField(field); setSortDir(field === 'course' ? 'asc' : 'desc'); }
+  };
+
+  const addVisited = () => {
+    if (!newVisit.course.trim()) { alert('Course name is required'); return; }
+    setVisited(v => [...v, { ...newVisit, id: Date.now().toString() }]);
+    setNewVisit({ course: '', date: '', notes: '' });
+    setShowAdd(false);
+  };
+
+  const removeVisited = (course) => {
+    if (!confirm(`Remove "${course}" from visited list?`)) return;
+    setVisited(v => v.filter(x => x.course.trim() !== course.trim()));
+  };
+
+  const SortIcon = ({ field }) => sortField === field ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '';
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 500 }}>Courses Played</h2>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{filtered.length} courses</span>
+          <button onClick={() => setShowAdd(s => !s)} style={{ background: '#185FA5', color: '#fff', border: 'none', borderRadius: 7, padding: '7px 14px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <i className="ti ti-plus" aria-hidden="true"></i> Add visited course
+          </button>
+        </div>
+      </div>
+
+      {showAdd && (
+        <div style={{ background: '#f0f6ff', border: '0.5px solid #b5d4f4', borderRadius: 10, padding: 16, marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 500, color: '#0c447c', marginBottom: 12 }}>Add a course you've visited (no score recorded)</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 2fr', gap: 10, marginBottom: 12 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: '#378add', marginBottom: 3 }}>Course name</label>
+              <input list="course-list-visited" value={newVisit.course} onChange={e => setNewVisit(v => ({ ...v, course: e.target.value }))} placeholder="e.g. Wentworth" style={{ width: '100%', boxSizing: 'border-box' }} />
+              <datalist id="course-list-visited">{COURSES.map(c => <option key={c} value={c} />)}</datalist>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: '#378add', marginBottom: 3 }}>Date (approx. ok)</label>
+              <input type="date" value={newVisit.date} onChange={e => setNewVisit(v => ({ ...v, date: e.target.value }))} style={{ width: '100%', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: '#378add', marginBottom: 3 }}>Notes (optional)</label>
+              <input value={newVisit.notes} onChange={e => setNewVisit(v => ({ ...v, notes: e.target.value }))} placeholder="e.g. Team event, Captain's Day" style={{ width: '100%', boxSizing: 'border-box' }} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={addVisited} style={{ background: '#185FA5', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 14px', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}>Add course</button>
+            <button onClick={() => setShowAdd(false)} style={{ background: 'none', border: '0.5px solid var(--color-border-secondary)', borderRadius: 6, padding: '6px 14px', cursor: 'pointer', fontSize: 13 }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search courses..." style={{ marginBottom: 12, width: '100%', maxWidth: 300, boxSizing: 'border-box' }} />
+
+      <div style={{ background: 'var(--color-background-primary)', border: '0.5px solid var(--color-border-tertiary)', borderRadius: 12, overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead style={{ background: 'var(--color-background-secondary)' }}>
+              <tr>
+                {[['course','Course'],['count','Rounds'],['avgDiff','Avg Diff'],['bestDiff','Best Diff'],['lastPlayed','Last Played']].map(([f,l]) => (
+                  <th key={f} onClick={() => handleSort(f)} style={{ padding: '10px 12px', textAlign: f === 'course' ? 'left' : 'right', fontWeight: 500, fontSize: 12, color: 'var(--color-text-secondary)', cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>
+                    {l}<SortIcon field={f} />
+                  </th>
+                ))}
+                <th style={{ padding: '10px 12px', fontWeight: 500, fontSize: 12, color: 'var(--color-text-secondary)' }}>Notes</th>
+                <th style={{ padding: '10px 12px' }}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((c, i) => {
+                const avgDiff = c.diffs.length ? c.diffs.reduce((s,d)=>s+d,0)/c.diffs.length : null;
+                const bestDiff = c.diffs.length ? Math.min(...c.diffs) : null;
+                const lastDate = c.dates.length ? c.dates.sort().reverse()[0] : null;
+                const isVisitedOnly = c.count === 0;
+                return (
+                  <tr key={i} style={{ borderTop: '0.5px solid var(--color-border-tertiary)', background: isVisitedOnly ? '#fafaf7' : 'transparent' }}>
+                    <td style={{ padding: '8px 12px', fontWeight: 500 }}>
+                      {c.course}
+                      {isVisitedOnly && <span style={{ marginLeft: 8, fontSize: 11, background: '#f0f0e8', color: '#888', borderRadius: 4, padding: '1px 6px' }}>visited</span>}
+                    </td>
+                    <td style={{ padding: '8px 12px', textAlign: 'right' }}>{c.count || '—'}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'right' }}>{avgDiff != null ? avgDiff.toFixed(1) : '—'}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'right' }}>{bestDiff != null ? bestDiff.toFixed(1) : '—'}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'right' }}>{lastDate ? fmtDate(lastDate) : '—'}</td>
+                    <td style={{ padding: '8px 12px', color: 'var(--color-text-secondary)', fontSize: 12 }}>{c.notes || ''}</td>
+                    <td style={{ padding: '8px 12px' }}>
+                      {isVisitedOnly && (
+                        <button onClick={() => removeVisited(c.course)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c62828', padding: '2px 6px', fontSize: 12 }}>
+                          <i className="ti ti-trash" aria-hidden="true"></i>
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+              {filtered.length === 0 && (
+                <tr><td colSpan={7} style={{ padding: 20, textAlign: 'center', color: 'var(--color-text-secondary)' }}>No courses found</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+function CoursesTab({ courseDB, setCourseDB }) {
+  const [search, setSearch] = useState("");
+  const [editIdx, setEditIdx] = useState(null);
+  const [editEntry, setEditEntry] = useState(null);
+  const [showAdd, setShowAdd] = useState(false);
+  const [newEntry, setNewEntry] = useState({ course: "", tee: "", rating: "", slope: "", par: "" });
+
+  const filtered = courseDB
+    .map((c, i) => ({ ...c, _idx: i }))
+    .filter(c => !search || c.course.toLowerCase().includes(search.toLowerCase()) || c.tee.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => a.course.localeCompare(b.course) || a.tee.localeCompare(b.tee));
+
+  const saveEdit = () => {
+    if (!editEntry.course || !editEntry.tee || !editEntry.rating || !editEntry.slope || !editEntry.par) {
+      alert("All fields are required"); return;
+    }
+    setCourseDB(db => db.map((c, i) => i === editIdx ? { course: editEntry.course, tee: editEntry.tee, rating: Number(editEntry.rating), slope: Number(editEntry.slope), par: Number(editEntry.par) } : c));
+    setEditIdx(null); setEditEntry(null);
+  };
+
+  const saveNew = () => {
+    if (!newEntry.course || !newEntry.tee || !newEntry.rating || !newEntry.slope || !newEntry.par) {
+      alert("All fields are required"); return;
+    }
+    setCourseDB(db => [...db, { course: newEntry.course.trim(), tee: newEntry.tee.trim(), rating: Number(newEntry.rating), slope: Number(newEntry.slope), par: Number(newEntry.par) }]);
+    setNewEntry({ course: "", tee: "", rating: "", slope: "", par: "" });
+    setShowAdd(false);
+  };
+
+  const deleteEntry = (idx) => {
+    if (!confirm("Remove this course entry?")) return;
+    setCourseDB(db => db.filter((_, i) => i !== idx));
+  };
+
+  const resetToBuiltIn = () => {
+    if (!confirm("Reset course database to built-in data? Any courses you added will be removed.")) return;
+    setCourseDB(JSON.parse(JSON.stringify(BUILT_IN_COURSES)));
+  };
+
+  const RowInput = ({ val, onChange, type="text", placeholder="" }) => (
+    <input type={type} value={val} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+      style={{ width: "100%", boxSizing: "border-box", padding: "4px 6px", fontSize: 12 }} />
+  );
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
+        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 500 }}>Course database</h2>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={() => { setShowAdd(s => !s); setEditIdx(null); }} style={{ background: "#185FA5", color: "#fff", border: "none", borderRadius: 7, padding: "7px 14px", cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", gap: 5 }}>
+            <i className="ti ti-plus" aria-hidden="true"></i> Add course
+          </button>
+          <button onClick={resetToBuiltIn} style={{ background: "none", border: "0.5px solid var(--color-border-secondary)", borderRadius: 7, padding: "7px 14px", cursor: "pointer", fontSize: 13, color: "var(--color-text-secondary)" }}>
+            Reset to defaults
+          </button>
+        </div>
+      </div>
+
+      <div style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 12 }}>
+        {courseDB.length} entries. When you select a course and tee in Add Round, the rating, slope and par will auto-fill from here.
+      </div>
+
+      {showAdd && (
+        <div style={{ background: "#f0f6ff", border: "0.5px solid #b5d4f4", borderRadius: 10, padding: 16, marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 500, color: "#0c447c", marginBottom: 12 }}>Add new course entry</div>
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", gap: 8, marginBottom: 10 }}>
+            <div><label style={{ fontSize: 11, color: "#378add", display: "block", marginBottom: 2 }}>Course</label><RowInput val={newEntry.course} onChange={v => setNewEntry(e => ({ ...e, course: v }))} placeholder="e.g. Royal Norwich" /></div>
+            <div><label style={{ fontSize: 11, color: "#378add", display: "block", marginBottom: 2 }}>Tee</label><RowInput val={newEntry.tee} onChange={v => setNewEntry(e => ({ ...e, tee: v }))} placeholder="e.g. Black" /></div>
+            <div><label style={{ fontSize: 11, color: "#378add", display: "block", marginBottom: 2 }}>Course rating</label><RowInput val={newEntry.rating} onChange={v => setNewEntry(e => ({ ...e, rating: v }))} type="number" placeholder="71.2" /></div>
+            <div><label style={{ fontSize: 11, color: "#378add", display: "block", marginBottom: 2 }}>Slope</label><RowInput val={newEntry.slope} onChange={v => setNewEntry(e => ({ ...e, slope: v }))} type="number" placeholder="128" /></div>
+            <div><label style={{ fontSize: 11, color: "#378add", display: "block", marginBottom: 2 }}>Par</label><RowInput val={newEntry.par} onChange={v => setNewEntry(e => ({ ...e, par: v }))} type="number" placeholder="72" /></div>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={saveNew} style={{ background: "#185FA5", color: "#fff", border: "none", borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 13, fontWeight: 500 }}>Save</button>
+            <button onClick={() => setShowAdd(false)} style={{ background: "none", border: "0.5px solid var(--color-border-secondary)", borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 13 }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      <div style={{ marginBottom: 12 }}>
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search courses..." style={{ width: "100%", maxWidth: 300, boxSizing: "border-box" }} />
+      </div>
+
+      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead style={{ background: "var(--color-background-secondary)" }}>
+              <tr>
+                {["Course", "Tee", "Rating", "Slope", "Par", ""].map((h, i) => (
+                  <th key={i} style={{ padding: "9px 12px", textAlign: i >= 2 && i <= 4 ? "center" : "left", fontWeight: 500, fontSize: 12, color: "var(--color-text-secondary)" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((c, i) => (
+                <tr key={i} style={{ borderTop: "0.5px solid var(--color-border-tertiary)", background: editIdx === c._idx ? "#f0f6ff" : "transparent" }}>
+                  {editIdx === c._idx ? (
+                    <>
+                      <td style={{ padding: "6px 8px" }}><RowInput val={editEntry.course} onChange={v => setEditEntry(e => ({ ...e, course: v }))} /></td>
+                      <td style={{ padding: "6px 8px" }}><RowInput val={editEntry.tee} onChange={v => setEditEntry(e => ({ ...e, tee: v }))} /></td>
+                      <td style={{ padding: "6px 8px", textAlign: "center" }}><RowInput val={editEntry.rating} onChange={v => setEditEntry(e => ({ ...e, rating: v }))} type="number" /></td>
+                      <td style={{ padding: "6px 8px", textAlign: "center" }}><RowInput val={editEntry.slope} onChange={v => setEditEntry(e => ({ ...e, slope: v }))} type="number" /></td>
+                      <td style={{ padding: "6px 8px", textAlign: "center" }}><RowInput val={editEntry.par} onChange={v => setEditEntry(e => ({ ...e, par: v }))} type="number" /></td>
+                      <td style={{ padding: "6px 8px", whiteSpace: "nowrap" }}>
+                        <button onClick={saveEdit} style={{ background: "#185FA5", color: "#fff", border: "none", borderRadius: 4, padding: "3px 10px", cursor: "pointer", fontSize: 12, marginRight: 4 }}>Save</button>
+                        <button onClick={() => { setEditIdx(null); setEditEntry(null); }} style={{ background: "none", border: "0.5px solid #ccc", borderRadius: 4, padding: "3px 8px", cursor: "pointer", fontSize: 12 }}>Cancel</button>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td style={{ padding: "8px 12px", fontWeight: 500 }}>{c.course}</td>
+                      <td style={{ padding: "8px 12px" }}><span style={{ background: "#1a1a2e11", borderRadius: 4, padding: "1px 7px", fontSize: 11 }}>{c.tee}</span></td>
+                      <td style={{ padding: "8px 12px", textAlign: "center" }}>{c.rating}</td>
+                      <td style={{ padding: "8px 12px", textAlign: "center" }}>{c.slope}</td>
+                      <td style={{ padding: "8px 12px", textAlign: "center" }}>{c.par}</td>
+                      <td style={{ padding: "8px 12px", whiteSpace: "nowrap" }}>
+                        <button onClick={() => { setEditIdx(c._idx); setEditEntry({ course: c.course, tee: c.tee, rating: String(c.rating), slope: String(c.slope), par: String(c.par) }); setShowAdd(false); }} style={{ background: "none", border: "0.5px solid #ccc", borderRadius: 4, cursor: "pointer", color: "var(--color-text-secondary)", padding: "3px 8px", fontSize: 12, marginRight: 4 }}>Edit</button>
+                        <button onClick={() => deleteEntry(c._idx)} style={{ background: "none", border: "none", cursor: "pointer", color: "#c62828", padding: "3px 6px", fontSize: 12 }}><i className="ti ti-trash" aria-hidden="true"></i></button>
+                      </td>
+                    </>
+                  )}
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr><td colSpan={6} style={{ padding: 16, textAlign: "center", color: "var(--color-text-secondary)", fontSize: 13 }}>No courses found</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+function CompareTab({ data, liveEgHC, liveAllHC }) {
+  const eg = (data.englandGolf || []).filter(r => r.newHC != null && r.date).sort((a, b) => a.date.localeCompare(b.date));
+
+  const egLast = eg[eg.length - 1];
+  const egHCValue = liveEgHC ? liveEgHC.hc : (egLast ? Number(egLast.newHC) : null);
+  const allHCValue = liveAllHC ? liveAllHC.hc : null;
+  const diff = egHCValue != null && allHCValue != null ? egHCValue - allHCValue : null;
+
+  // Compute rolling potential HC at each allPlayed round date (lowest 8 from all played up to that point)
+  const apTrend = useMemo(() => {
+    const rounds = (data.allPlayed || []).filter(r => r.scoreDiff != null && r.date).sort((a, b) => a.date.localeCompare(b.date));
+    const points = [];
+    rounds.forEach((r, i) => {
+      const upTo = rounds.slice(0, i + 1);
+      const lowest8 = [...upTo].sort((a, b) => {
+        const d = Number(a.scoreDiff) - Number(b.scoreDiff);
+        return d !== 0 ? d : b.date.localeCompare(a.date);
+      }).slice(0, 8);
+      if (lowest8.length === 8) {
+        const avg = lowest8.reduce((s, x) => s + Number(x.scoreDiff), 0) / 8;
+        points.push({ date: r.date, hc: avg });
+      }
+    });
+    return points;
+  }, [data]);
+
+  const egPoints = eg.slice(-30);
+  const apPoints = apTrend.slice(-30);
+  const allPts = [...egPoints.map(p => Number(p.newHC)), ...apPoints.map(p => p.hc)].filter(v => !isNaN(v));
+  const minV = Math.min(...allPts) - 1, maxV = Math.max(...allPts) + 1, range = maxV - minV || 1;
+  const W = 600, H = 200, PAD = 16;
+  const allDates = [...new Set([...egPoints.map(p => p.date), ...apPoints.map(p => p.date)])].sort();
+  const xIdx = d => allDates.indexOf(d);
+  const xScale = i => PAD + (i / (allDates.length - 1 || 1)) * (W - PAD * 2);
+  const yScale = v => PAD + (1 - (v - minV) / range) * (H - PAD * 2);
+
+  const egPath = egPoints.map(p => `${xScale(xIdx(p.date))},${yScale(Number(p.newHC))}`).join(" ");
+  const apPath = apPoints.map(p => `${xScale(xIdx(p.date))},${yScale(p.hc)}`).join(" ");
+
+  const courseSummary = {};
+  [...(data.englandGolf || []), ...(data.nonCounted || []), ...(data.allPlayed || [])].forEach(r => {
+    if (!r.course) return;
+    const k = r.course.trim();
+    if (!courseSummary[k]) courseSummary[k] = { count: 0, diffs: [] };
+    courseSummary[k].count++;
+    if (r.scoreDiff != null) courseSummary[k].diffs.push(Number(r.scoreDiff));
+  });
+  const courseRows = Object.entries(courseSummary).map(([c, d]) => ({ course: c, count: d.count, avg: d.diffs.length ? d.diffs.reduce((a, b) => a + b) / d.diffs.length : null })).sort((a, b) => b.count - a.count);
+
+  return (
+    <div>
+      <h2 style={{ fontSize: 18, fontWeight: 500, marginBottom: 20 }}>HC Types</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginBottom: 24 }}>
+        <StatCard label="England Golf current HC" value={liveEgHC ? fmt(liveEgHC.hc) : (egLast ? fmt(egLast.newHC) : "—")} color="#185FA5" sub={liveEgHC ? liveEgHC.date + " (calculated)" : egLast?.date} />
+        <StatCard label="Potential HC (all played)" value={liveAllHC ? fmt(liveAllHC.hc) : "—"} color="#0F6E56" sub={liveAllHC ? liveAllHC.date + " (calculated)" : ""} />
+        <StatCard label="Difference" value={diff != null ? (diff > 0 ? "+" : "") + fmt(diff) : "—"} color={diff != null && diff > 0 ? "#993C1D" : "#0F6E56"} sub="EG minus potential" />
+      </div>
+      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 12, padding: 20, marginBottom: 24 }}>
+        <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 4 }}>Handicap trend — last 30 rounds per method</div>
+        <div style={{ display: "flex", gap: 16, marginBottom: 10, fontSize: 12 }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 24, height: 2, background: "#185FA5", display: "inline-block" }}></span> England Golf</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 24, height: 2, background: "#0F6E56", display: "inline-block", borderTop: "2px dashed #0F6E56" }}></span> All Played</span>
+        </div>
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: H }} role="img" aria-label="Handicap trend comparison chart">
+          {egPoints.length > 1 && <polyline points={egPath} fill="none" stroke="#185FA5" strokeWidth="2" strokeLinejoin="round" />}
+          {apPoints.length > 1 && <polyline points={apPath} fill="none" stroke="#0F6E56" strokeWidth="2" strokeLinejoin="round" strokeDasharray="6 3" />}
+          {egPoints.map((p, i) => <circle key={i} cx={xScale(xIdx(p.date))} cy={yScale(Number(p.newHC))} r="3" fill="#185FA5" />)}
+          {apPoints.map((p, i) => <circle key={i} cx={xScale(xIdx(p.date))} cy={yScale(p.hc)} r="3" fill="#0F6E56" />)}
+        </svg>
+      </div>
+      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 12, padding: 20 }}>
+        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 12 }}>All courses played (by rounds)</div>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead>
+            <tr style={{ color: "var(--color-text-secondary)", borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
+              <th style={{ textAlign: "left", padding: "4px 8px", fontWeight: 400 }}>Course</th>
+              <th style={{ textAlign: "right", padding: "4px 8px", fontWeight: 400 }}>Rounds</th>
+              <th style={{ textAlign: "right", padding: "4px 8px", fontWeight: 400 }}>Avg diff</th>
+              <th style={{ textAlign: "left", padding: "4px 8px", fontWeight: 400 }}>Frequency</th>
+            </tr>
+          </thead>
+          <tbody>
+            {courseRows.map((r, i) => (
+              <tr key={i} style={{ borderTop: "0.5px solid var(--color-border-tertiary)" }}>
+                <td style={{ padding: "6px 8px", fontWeight: 500 }}>{r.course}</td>
+                <td style={{ padding: "6px 8px", textAlign: "right" }}>{r.count}</td>
+                <td style={{ padding: "6px 8px", textAlign: "right" }}>{r.avg != null ? fmt(r.avg, 1) : "—"}</td>
+                <td style={{ padding: "6px 8px" }}>
+                  <div style={{ background: "#E6F1FB", borderRadius: 4, height: 8, width: "100%", overflow: "hidden" }}>
+                    <div style={{ background: "#185FA5", height: "100%", width: `${(r.count / courseRows[0].count) * 100}%`, borderRadius: 4 }}></div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
