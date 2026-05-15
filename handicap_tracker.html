@@ -911,6 +911,7 @@ function AddEditRound({ round, onSave, onCancel, origIdx, courseDB, setCourseDB,
               ref={scoreRef}
               type="number"
               defaultValue={scoreVal}
+              onInput={e => setScoreVal(e.target.value)}
               placeholder="104"
               style={{ width: "100%", boxSizing: "border-box" }}
             />
@@ -964,10 +965,10 @@ function AddEditRound({ round, onSave, onCancel, origIdx, courseDB, setCourseDB,
                 <input type="number" value={calc.par} onChange={e => setC("par", e.target.value)} placeholder="e.g. 72" style={{ width: "100%", boxSizing: "border-box" }} />
               </div>
             </div>
-            {(scoreRef.current ? scoreRef.current.value : scoreVal) && calc.courseRating && calc.slope && (
+            {scoreVal && calc.courseRating && calc.slope && (
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                 <div style={{ fontSize: 13, color: "#0c447c", fontWeight: 500 }}>
-                  Differential: {((Number(scoreRef.current ? scoreRef.current.value : scoreVal) - Number(calc.courseRating)) * (113 / Number(calc.slope))).toFixed(2)}
+                  Differential: {((Number(scoreVal) - Number(calc.courseRating)) * (113 / Number(calc.slope))).toFixed(2)}
                 </div>
                 <button type="button" onClick={computeDiff} style={{ background: "#185FA5", color: "#fff", border: "none", borderRadius: 6, padding: "5px 12px", cursor: "pointer", fontSize: 12, fontWeight: 500 }}>
                   Apply ↓
