@@ -7,6 +7,8 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Handicap Tracker</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -32,6 +34,24 @@ const RAW_DATA = {"englandGolf":[{"date":"2026-05-12","scoreDiff":24.792537,"cou
 
 const COURSE_DB_KEY = "golf_course_db_v1";
 const VISITED_KEY = "golf_visited_courses_v1";
+const FIREBASE_CONFIG = {"apiKey": "AIzaSyCATSFP34u1NyIbkVSC-2DeBh4jLh3xUzA", "authDomain": "handicap-tracker-7d40a.firebaseapp.com", "projectId": "handicap-tracker-7d40a", "storageBucket": "handicap-tracker-7d40a.firebasestorage.app", "messagingSenderId": "735901619531", "appId": "1:735901619531:web:40f36a6b97fe390a2804ce"};
+firebase.initializeApp(FIREBASE_CONFIG);
+const db = firebase.firestore();
+
+async function fbSave(collection, docId, data) {
+  try {
+    await db.collection(collection).doc(docId).set(data);
+    return true;
+  } catch(e) { console.error('fbSave error:', e); return false; }
+}
+
+async function fbLoad(collection, docId) {
+  try {
+    const doc = await db.collection(collection).doc(docId).get();
+    return doc.exists ? doc.data() : null;
+  } catch(e) { console.error('fbLoad error:', e); return null; }
+}
+
 const SHEETS_URL = "https://script.google.com/macros/s/AKfycbxPdcB7zEx7pWKI1-mT_BEidB3rgWYKZtJayAt6PaFe0rxax7_WGabhZeKQkfJwzDhN/exec";
 
 async function sheetsRead(tab) {
@@ -235,58 +255,57 @@ function App() {
   const [syncStatus, setSyncStatus] = useState('idle'); // idle | syncing | ok | error
   useEffect(() => { saveVisited(visited); }, [visited]);
 
-  // Sync data to Google Sheets whenever data or visited changes
+  // Sync to Firebase whenever data or visited changes
   useEffect(() => {
     const sync = async () => {
       setSyncStatus('syncing');
       try {
         const manualEG = (data.englandGolf || []).filter(r => r.id);
         const manualAP = (data.allPlayed || []).filter(r => r.id);
-        if (manualEG.length === 0 && manualAP.length === 0 && visited.length === 0) {
-          setSyncStatus('idle');
-          return;
-        }
-        await sheetsWrite('EG', roundsToRows(manualEG));
-        await sheetsWrite('AllPlayed', roundsToRows(manualAP));
-        await sheetsWrite('Visited', visitedToRows(visited));
+        await Promise.all([
+          fbSave('rounds', 'englandGolf', { rounds: manualEG }),
+          fbSave('rounds', 'allPlayed', { rounds: manualAP }),
+          fbSave('rounds', 'visited', { items: visited })
+        ]);
         setSyncStatus('ok');
         setTimeout(() => setSyncStatus('idle'), 3000);
       } catch(e) {
+        console.error('Firebase save error:', e);
         setSyncStatus('error');
-        notify('Sync error: ' + e.message, 'danger');
+        notify('Sync error - check connection', 'danger');
       }
     };
     const timer = setTimeout(sync, 2000);
     return () => clearTimeout(timer);
   }, [data, visited]);
 
-  // Load from Google Sheets on startup
+  // Load from Firebase on startup
   useEffect(() => {
-    const loadFromSheets = async () => {
+    const loadFromFirebase = async () => {
       setSyncStatus('syncing');
       try {
-        const [egRows, apRows, visitedRows] = await Promise.all([
-          sheetsRead('EG'),
-          sheetsRead('AllPlayed'),
-          sheetsRead('Visited')
+        const [egDoc, apDoc, visitedDoc] = await Promise.all([
+          fbLoad('rounds', 'englandGolf'),
+          fbLoad('rounds', 'allPlayed'),
+          fbLoad('rounds', 'visited')
         ]);
-        const egManual = rowsToRounds(egRows);
-        const apManual = rowsToRounds(apRows);
-        const visitedData = rowsToVisited(visitedRows);
-        if (egManual.length || apManual.length) {
-          const fresh = JSON.parse(JSON.stringify(RAW_DATA));
-          if (egManual.length) fresh.englandGolf = [...egManual, ...fresh.englandGolf];
-          if (apManual.length) fresh.allPlayed = [...apManual, ...fresh.allPlayed];
-          setData(fresh);
+        const fresh = JSON.parse(JSON.stringify(RAW_DATA));
+        if (egDoc && egDoc.rounds && egDoc.rounds.length) {
+          fresh.englandGolf = [...egDoc.rounds, ...fresh.englandGolf];
         }
-        if (visitedData.length) setVisited(visitedData);
+        if (apDoc && apDoc.rounds && apDoc.rounds.length) {
+          fresh.allPlayed = [...apDoc.rounds, ...fresh.allPlayed];
+        }
+        setData(fresh);
+        if (visitedDoc && visitedDoc.items) setVisited(visitedDoc.items);
         setSyncStatus('ok');
         setTimeout(() => setSyncStatus('idle'), 3000);
       } catch(e) {
+        console.error('Firebase load error:', e);
         setSyncStatus('error');
       }
     };
-    loadFromSheets();
+    loadFromFirebase();
   }, []);
 
   useEffect(() => { saveCourseDB(courseDB); }, [courseDB]);
