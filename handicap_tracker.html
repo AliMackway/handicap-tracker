@@ -35,20 +35,36 @@ const VISITED_KEY = "golf_visited_courses_v1";
 const SHEETS_URL = "https://script.google.com/macros/s/AKfycbxPdcB7zEx7pWKI1-mT_BEidB3rgWYKZtJayAt6PaFe0rxax7_WGabhZeKQkfJwzDhN/exec";
 
 async function sheetsRead(tab) {
-  try {
-    const res = await fetch(SHEETS_URL + "?action=read&tab=" + tab);
-    const json = await res.json();
-    return json.ok ? json.data : null;
-  } catch(e) { return null; }
+  return new Promise((resolve) => {
+    const cbName = 'cb_' + Date.now();
+    const script = document.createElement('script');
+    window[cbName] = (data) => {
+      delete window[cbName];
+      document.body.removeChild(script);
+      resolve(data && data.ok ? data.data : null);
+    };
+    script.onerror = () => { delete window[cbName]; resolve(null); };
+    script.src = SHEETS_URL + '?action=read&tab=' + encodeURIComponent(tab) + '&callback=' + cbName;
+    document.body.appendChild(script);
+    setTimeout(() => { if(window[cbName]) { delete window[cbName]; resolve(null); } }, 8000);
+  });
 }
 
 async function sheetsWrite(tab, rows) {
-  try {
-    await fetch(SHEETS_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: "write", tab, rows })
-    });
-  } catch(e) {}
+  return new Promise((resolve) => {
+    const cbName = 'wcb_' + Date.now();
+    const script = document.createElement('script');
+    const data = encodeURIComponent(JSON.stringify({action:'write', tab:tab, rows:rows}));
+    window[cbName] = (result) => {
+      delete window[cbName];
+      if (document.body.contains(script)) document.body.removeChild(script);
+      resolve(result);
+    };
+    script.onerror = () => { delete window[cbName]; resolve(null); };
+    script.src = SHEETS_URL + '?callback=' + cbName + '&payload=' + data;
+    document.body.appendChild(script);
+    setTimeout(() => { if(window[cbName]) { delete window[cbName]; resolve(null); } }, 10000);
+  });
 }
 
 function roundsToRows(rounds) {
@@ -226,7 +242,10 @@ function App() {
       try {
         const manualEG = (data.englandGolf || []).filter(r => r.id);
         const manualAP = (data.allPlayed || []).filter(r => r.id);
-        const allManual = [...manualEG, ...manualAP];
+        if (manualEG.length === 0 && manualAP.length === 0 && visited.length === 0) {
+          setSyncStatus('idle');
+          return;
+        }
         await sheetsWrite('EG', roundsToRows(manualEG));
         await sheetsWrite('AllPlayed', roundsToRows(manualAP));
         await sheetsWrite('Visited', visitedToRows(visited));
@@ -234,9 +253,10 @@ function App() {
         setTimeout(() => setSyncStatus('idle'), 3000);
       } catch(e) {
         setSyncStatus('error');
+        notify('Sync error: ' + e.message, 'danger');
       }
     };
-    const timer = setTimeout(sync, 2000); // debounce 2s
+    const timer = setTimeout(sync, 2000);
     return () => clearTimeout(timer);
   }, [data, visited]);
 
@@ -788,11 +808,12 @@ function RoundsTable({ rounds, countingSet, search, setSearch, filterCourse, set
 function AddEditRound({ round, onSave, onCancel, origIdx, courseDB, setCourseDB, liveEgHC }) {
   const isEdit = !!round;
   const [method, setMethod] = useState(round?.method || "englandGolf");
+  const [scoreVal, setScoreVal] = useState(round?.score != null ? String(round.score) : "");
+  const scoreRef = useRef(null);
   const [form, setForm] = useState({
     date: round?.date || new Date().toISOString().slice(0, 10),
     course: round?.course || "",
     tee: round?.tee || "",
-    score: round?.score != null ? String(round.score) : "",
     scoreDiff: round?.scoreDiff != null ? Number(round.scoreDiff).toFixed(2) : "",
     newHC: round?.newHC != null ? Number(round.newHC).toFixed(1) : "",
     potentialHC: round?.potentialHC != null ? Number(round.potentialHC).toFixed(1) : "",
@@ -816,7 +837,7 @@ function AddEditRound({ round, onSave, onCancel, origIdx, courseDB, setCourseDB,
   const setC = (k, v) => setCalc(c => ({ ...c, [k]: v }));
 
   const computeDiff = () => {
-    const score = Number(form.score);
+    const score = Number(scoreVal);
     const cr = Number(calc.courseRating);
     const slope = Number(calc.slope);
     const par = Number(calc.par);
@@ -832,9 +853,10 @@ function AddEditRound({ round, onSave, onCancel, origIdx, courseDB, setCourseDB,
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const handleSubmit = () => {
-    if (!form.date || !form.course || !form.score) { alert("Date, course and score are required."); return; }
+    const scoreFromRef = scoreRef.current ? scoreRef.current.value : scoreVal;
+    if (!form.date || !form.course || !scoreFromRef) { alert("Date, course and score are required."); return; }
     if (!form.scoreDiff) { alert("Score differential is required. Use the calculator if needed."); return; }
-    const r = { ...form, score: Number(form.score), scoreDiff: Number(form.scoreDiff) };
+    const r = { ...form, score: Number(scoreFromRef), scoreDiff: Number(form.scoreDiff) };
     if (method === "englandGolf") r.newHC = form.newHC ? Number(form.newHC) : null;
     if (method === "allPlayed") r.potentialHC = form.potentialHC ? Number(form.potentialHC) : null;
     onSave(r, method, origIdx);
@@ -854,9 +876,8 @@ function AddEditRound({ round, onSave, onCancel, origIdx, courseDB, setCourseDB,
 
         <Field label="Type">
           <select value={method} onChange={e => setMethod(e.target.value)} disabled={isEdit} style={{ width: "100%", opacity: isEdit ? 0.6 : 1 }}>
-            <option value="englandGolf">England Golf (counted)</option>
-            <option value="nonCounted">Non-counted</option>
-            <option value="allPlayed">All Played (potential)</option>
+            <option value="englandGolf">England Golf</option>
+            <option value="allPlayed">All Rounds Played</option>
           </select>
           {isEdit && <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 4 }}>Type cannot be changed when editing</div>}
         </Field>
@@ -866,7 +887,13 @@ function AddEditRound({ round, onSave, onCancel, origIdx, courseDB, setCourseDB,
             <input type="date" value={form.date} onChange={e => set("date", e.target.value)} style={{ width: "100%", boxSizing: "border-box" }} />
           </Field>
           <Field label="Gross score">
-            <input type="text" inputMode="numeric" value={form.score} onChange={e => { const v = e.target.value.replace(/\D/g,""); set("score", v); }} placeholder="e.g. 104" style={{ width: "100%", boxSizing: "border-box" }} />
+            <input
+              ref={scoreRef}
+              type="number"
+              defaultValue={scoreVal}
+              placeholder="104"
+              style={{ width: "100%", boxSizing: "border-box" }}
+            />
           </Field>
         </div>
 
@@ -917,10 +944,10 @@ function AddEditRound({ round, onSave, onCancel, origIdx, courseDB, setCourseDB,
                 <input type="number" value={calc.par} onChange={e => setC("par", e.target.value)} placeholder="e.g. 72" style={{ width: "100%", boxSizing: "border-box" }} />
               </div>
             </div>
-            {form.score && calc.courseRating && calc.slope && (
+            {scoreVal && calc.courseRating && calc.slope && (
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                 <div style={{ fontSize: 13, color: "#0c447c", fontWeight: 500 }}>
-                  Differential: {((Number(form.score) - Number(calc.courseRating)) * (113 / Number(calc.slope))).toFixed(2)}
+                  Differential: {((Number(scoreVal) - Number(calc.courseRating)) * (113 / Number(calc.slope))).toFixed(2)}
                 </div>
                 <button type="button" onClick={computeDiff} style={{ background: "#185FA5", color: "#fff", border: "none", borderRadius: 6, padding: "5px 12px", cursor: "pointer", fontSize: 12, fontWeight: 500 }}>
                   Apply ↓
@@ -962,7 +989,7 @@ function AddEditRound({ round, onSave, onCancel, origIdx, courseDB, setCourseDB,
                 const cr = Number(calc.courseRating);
                 const slope = Number(calc.slope);
                 const par = Number(calc.par);
-                const score = Number(form.score);
+                const score = Number(scoreVal);
                 const hcIndex = form.newHC ? Number(form.newHC) : (liveEgHC ? liveEgHC.hc : 0);
                 if (cr && slope && par && score && hcIndex) {
                   const courseHC = Math.round(hcIndex * (slope / 113) + (cr - par));
@@ -975,7 +1002,7 @@ function AddEditRound({ round, onSave, onCancel, origIdx, courseDB, setCourseDB,
                       <div style={{ fontSize: 12, color: "var(--color-text-secondary)", display: "flex", gap: 12, flexWrap: "wrap" }}>
                         <span>Course HC: <strong>{courseHC}</strong></span>
                         <span>Par: <strong>{par}</strong></span>
-                        <span>Score: <strong>{score}</strong></span>
+                        <span>Score: <strong>{scoreVal}</strong></span>
                         <span>HC Index: <strong>{hcIndex.toFixed(1)}</strong></span>
                       </div>
                     </div>
