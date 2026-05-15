@@ -910,29 +910,30 @@ function AddEditRound({ round, onSave, onCancel, origIdx, courseDB, setCourseDB,
             <input
               ref={scoreRef}
               type="text"
-              pattern="[0-9]*"
               inputMode="numeric"
+              pattern="[0-9]*"
               autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="off"
-              spellCheck="false"
-              defaultValue={scoreVal}
-              onInput={e => setScoreVal(e.target.value.replace(/[^0-9]/g, ''))}
+              defaultValue={round?.score != null ? String(round.score) : ''}
+              onInput={e => { setScoreVal(e.target.value); }}
               placeholder="104"
-              style={{ width: "100%", boxSizing: "border-box" }}
+              style={{ width: "100%", boxSizing: "border-box", fontSize: 16 }}
             />
           </Field>
         </div>
 
         <Field label="Course">
-          <input list="course-list" value={form.course} onChange={e => set("course", e.target.value)} placeholder="e.g. Royal Norwich" style={{ width: "100%", boxSizing: "border-box" }} />
-          <datalist id="course-list">{COURSES.map(c => <option key={c} value={c} />)}</datalist>
+          <select value={form.course} onChange={e => set("course", e.target.value)} style={{ width: "100%", boxSizing: "border-box" }}>
+            <option value="">-- Select course --</option>
+            {COURSES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
         </Field>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <Field label="Tee">
-            <input list="tee-list" value={form.tee} onChange={e => set("tee", e.target.value)} placeholder="e.g. Black" style={{ width: "100%", boxSizing: "border-box" }} />
-            <datalist id="tee-list">{["Black","Blue","Red","Silver","Bronze","Orange","Yellow","Green","Gold","White"].map(t => <option key={t} value={t} />)}</datalist>
+            <select value={form.tee} onChange={e => set("tee", e.target.value)} style={{ width: "100%", boxSizing: "border-box" }}>
+              <option value="">-- Select tee --</option>
+              {["Black","Blue","Bronze","Gold","Green","Orange","Red","Silver","White","Yellow"].map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
           </Field>
           <Field label="Score differential">
             <div style={{ display: "flex", gap: 6 }}>
@@ -1151,8 +1152,14 @@ function CoursesPlayedTab({ data, visited, setVisited }) {
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 2fr', gap: 10, marginBottom: 12 }}>
             <div>
               <label style={{ display: 'block', fontSize: 12, color: '#378add', marginBottom: 3 }}>Course name</label>
-              <input list="course-list-visited" value={newVisit.course} onChange={e => setNewVisit(v => ({ ...v, course: e.target.value }))} placeholder="e.g. Wentworth" style={{ width: '100%', boxSizing: 'border-box' }} />
-              <datalist id="course-list-visited">{COURSES.map(c => <option key={c} value={c} />)}</datalist>
+              <select value={newVisit.course} onChange={e => setNewVisit(v => ({ ...v, course: e.target.value }))} style={{ width: '100%', boxSizing: 'border-box' }}>
+                <option value="">-- Select course --</option>
+                {COURSES.map(c => <option key={c} value={c}>{c}</option>)}
+                <option value="__other__">Other (type below)</option>
+              </select>
+              {newVisit.course === '__other__' && (
+                <input value={newVisit.customCourse || ''} onChange={e => setNewVisit(v => ({ ...v, customCourse: e.target.value }))} placeholder="Type course name" style={{ width: '100%', boxSizing: 'border-box', marginTop: 4 }} />
+              )}
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 12, color: '#378add', marginBottom: 3 }}>Date (approx. ok)</label>
