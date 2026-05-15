@@ -907,17 +907,15 @@ function AddEditRound({ round, onSave, onCancel, origIdx, courseDB, setCourseDB,
             <input type="date" value={form.date} onChange={e => set("date", e.target.value)} style={{ width: "100%", boxSizing: "border-box" }} />
           </Field>
           <Field label="Gross score">
-            <select
-              ref={scoreRef}
-              defaultValue={round?.score != null ? String(round.score) : ''}
-              onChange={e => setScoreVal(e.target.value)}
-              style={{ width: "100%", boxSizing: "border-box", fontSize: 16 }}
-            >
-              <option value="">-- Select score --</option>
-              {Array.from({length: 91}, (_, i) => i + 60).map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button type="button" onClick={() => setScoreVal(v => String(Math.max(60, Number(v || 90) - 1)))}
+                style={{ background: '#185FA5', color: '#fff', border: 'none', borderRadius: 8, width: 44, height: 44, fontSize: 24, cursor: 'pointer', flexShrink: 0 }}>−</button>
+              <div style={{ flex: 1, textAlign: 'center', fontSize: 28, fontWeight: 600, color: 'var(--color-text-primary)', padding: '8px 0' }}>
+                {scoreVal || '—'}
+              </div>
+              <button type="button" onClick={() => setScoreVal(v => String(Math.min(150, Number(v || 90) + 1)))}
+                style={{ background: '#185FA5', color: '#fff', border: 'none', borderRadius: 8, width: 44, height: 44, fontSize: 24, cursor: 'pointer', flexShrink: 0 }}>+</button>
+            </div>
           </Field>
         </div>
 
