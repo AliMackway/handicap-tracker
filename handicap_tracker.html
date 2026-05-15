@@ -909,9 +909,9 @@ function AddEditRound({ round, onSave, onCancel, origIdx, courseDB, setCourseDB,
           <Field label="Gross score">
             <input
               ref={scoreRef}
-              type="number"
+              type="tel"
               defaultValue={scoreVal}
-              onInput={e => setScoreVal(e.target.value)}
+              onInput={e => setScoreVal(e.target.value.replace(/[^0-9]/g, ''))}
               placeholder="104"
               style={{ width: "100%", boxSizing: "border-box" }}
             />
